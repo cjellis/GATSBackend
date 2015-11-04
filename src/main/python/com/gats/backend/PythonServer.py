@@ -40,7 +40,7 @@ def get_skill_names():
 
 
 def get_event_names():
-    global events
+    global ev ents
     events = []
     events_list = eventCollection.find()
     for event in events_list:
