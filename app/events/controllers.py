@@ -8,7 +8,7 @@ from flask import Blueprint, request
 # Define the blueprint: 'auth', set its url prefix: app.url/auth
 events = Blueprint('events', __name__, url_prefix='/events')
 
-client = MongoClient()
+client = MongoClient("mongodb://admin:password@ds049754.mongolab.com:49754/softwaredev")
 db = client.ActivityTracker
 eventCollection = db.Events
 skillCollection = db.Skills
