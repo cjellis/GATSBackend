@@ -1,56 +1,56 @@
 from app.database.mongo import dimension_collection, skill_collection
 import json
+from cerberus import Validator
 from flask import Blueprint, request
 
 admin = Blueprint('administrator', __name__, url_prefix='/administrator')
 
-dimensions = []
-skills = []
+
+def validate_dimensions_exist(field, value, error):
+    for v in value:
+        if dimension_collection.find({"name": v}).count() is 0:
+            error(field, "Skill does not exist")
 
 
-def get_skill_names():
-    global skills
-    skills = []
-    skills_list = skill_collection.find()
-    for skill in skills_list:
-        skills.append(skill["name"])
+skill_schema = {
+    'name': {'required': True, 'type': 'string'},
+    'dimensions': {'required': True, 'type': 'list', 'schema': {'type': 'string'},
+                   'validator': validate_dimensions_exist}
+}
+
+skill_schema_validator = Validator(skill_schema)
 
 
-def get_dimension_names():
-    global dimensions
-    dimensions = []
-    dimensions_list = dimension_collection.find()
-    for dimension in dimensions_list:
-        dimensions.append(dimension["name"])
+dimension_schema = {
+    'name': {'required': True, 'type': 'string'}
+}
+
+dimension_schema_validator = Validator(dimension_schema)
 
 
 @admin.route('/addSkill', methods=['POST'])
 def add_skill():
     data = json.loads(request.data)
-    if "name" in data and "dimensions" in data:
-        if data["name"] not in skills:
-            for d in data["dimensions"]:
-                if d not in dimensions:
-                    return "Failure"
+    if skill_schema_validator.validate(data):
+        if skill_collection.find({"name": data["name"]}).count() is 0:
             mongo_id = skill_collection.insert_one(data).inserted_id
             if mongo_id:
-                skills.append(data["name"])
                 return "Success"
-    return "Failure"
+            return "ERROR: Could not create skill. Please try again"
+        return "ERROR: Skill Exists with that Name"
+    return json.dumps(skill_schema_validator.errors)
 
 
 @admin.route('/addDimension', methods=['POST'])
 def add_dimension():
     data = json.loads(request.data)
-    if "name" in data:
-        if data["name"] not in dimensions:
+    if dimension_schema_validator.validate(data):
+        if dimension_collection.find({"name": data["name"]}).count() is 0:
             mongo_id = dimension_collection.insert_one(data).inserted_id
             if mongo_id:
-                dimensions.append(data["name"])
                 return "Success"
-    return "Failure"
+            return "ERROR: Could not create dimension. Please try again"
+        return "ERROR: Dimension Exists with that Name"
+    return json.dumps(dimension_schema_validator.errors)
 
-
-get_skill_names()
-get_dimension_names()
 
