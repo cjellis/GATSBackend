@@ -1,10 +1,9 @@
 from app.database.mongo import event_collection, skill_collection
 import json
 from bson import json_util
-# Import flask dependencies
 from flask import Blueprint, request
 from cerberus import Validator
-# Define the blueprint: 'auth', set its url prefix: app.url/auth
+
 events = Blueprint('events', __name__, url_prefix='/events')
 
 
@@ -106,20 +105,20 @@ schema = {
     'otherRequirements': {
         'type': 'list',
         'schema': {'type': 'string'}
-    },
-    'owner': {
-            'type': 'objectid',
-            'required': True,
-            # referential integrity constraint: value must exist in the
-            # 'people' collection. Since we aren't declaring a 'field' key,
-            # will default to `people._id` (or, more precisely, to whatever
-            # ID_FIELD value is).
-            'data_relation': {
-                'resource': 'users',
-                # make the owner embeddable with ?embedded={"owner":1}
-                'embeddable': True
-            },
-        },
+    }
+    # 'owner': {
+    #         'type': 'string',
+    #         'required': True,
+    #         # referential integrity constraint: value must exist in the
+    #         # 'people' collection. Since we aren't declaring a 'field' key,
+    #         # will default to `people._id` (or, more precisely, to whatever
+    #         # ID_FIELD value is).
+    #         'data_relation': {
+    #             'resource': 'users',
+    #             # make the owner embeddable with ?embedded={"owner":1}
+    #             'embeddable': True
+    #         },
+    # }
 }
 
 schemaValidator = Validator(schema)
