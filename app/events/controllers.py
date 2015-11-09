@@ -3,6 +3,7 @@ import json
 from bson import json_util
 from flask import Blueprint, request
 from cerberus import Validator
+import datetime
 
 events = Blueprint('events', __name__, url_prefix='/events')
 
@@ -10,13 +11,36 @@ events = Blueprint('events', __name__, url_prefix='/events')
 def validate_skills_exist(field, value, error):
     for v in value:
         if skill_collection.find({"name": v}).count() is 0:
-            error(field, "Skill does not exist")
+            error(field, "Skill does not exist - " + v)
+
+
+def validate_title_does_not_exist(field, value, error):
+    if event_collection.find({"title": value}).count() is not 0:
+        error(field, "Event already exists with given title")
+
+
+def validate_date(field, value, error):
+    try:
+        datetime.datetime.strptime(value, '%m/%d/%Y')
+    except ValueError:
+        error(field, "Date not in correct format")
+
+
+def validate_phone_number(field, value, error):
+    if len(value) is not 10:
+        error(field, "Phone Number not long enough")
+
+
+def validate_email(field, value, error):
+    if not value.endswith("@neu.edu"):
+        error(field, "Email is not an @neu email")
 
 
 schema = {
     'title': {
         'required': True,
-        'type': 'string'
+        'type': 'string',
+        'validator': validate_title_does_not_exist
     },
     'format': {
         'required': True,
@@ -35,11 +59,13 @@ schema = {
     },
     'begin': {
         'required': True,
-        'type': 'string'
+        'type': 'string',
+        'validator': validate_date
     },
     'end': {
         'required': True,
-        'type': 'string'
+        'type': 'string',
+        'validator': validate_date
     },
     'engagementLengthValue': {
         'required': True,
@@ -67,8 +93,8 @@ schema = {
         'type': 'dict',
         'schema': {
             'name': {'type': 'string'},
-            'number': {'type': 'string'},
-            'email': {'type': 'string'}
+            'number': {'type': 'string', 'validator': validate_phone_number},
+            'email': {'type': 'string', 'validator': validate_email}
         }
     },
     'outcomes': {
@@ -128,17 +154,15 @@ schemaValidator = Validator(schema)
 def add_event():
     data = json.loads(request.data)
     if schemaValidator.validate(data):
-        if event_collection.find({"title": data["title"]}).count() is 0:
-            mongo_id = event_collection.insert_one(data).inserted_id
-            if mongo_id:
-                return "Success"
-            return "ERROR: Could not create event. Please try again"
-        return "ERROR: Event Exists with that Title"
+        mongo_id = event_collection.insert_one(data).inserted_id
+        if mongo_id:
+            return "Success"
+        return "ERROR: Could not create event. Please try again"
     return json.dumps(schemaValidator.errors)
 
 
 @events.route('/getAllEvents', methods=['GET'])
 def get_all_events():
-    all_events = event_collection.find()
+    all_events = event_collection.find({}, {"_id": 0})
     events_from_db = [json.dumps(e, default=json_util.default) for e in all_events]
     return json.dumps(events_from_db)
