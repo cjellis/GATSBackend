@@ -13,16 +13,26 @@ def validate_dimensions_exist(field, value, error):
 
 
 skill_schema = {
-    'name': {'required': True, 'type': 'string'},
-    'dimensions': {'required': True, 'type': 'list', 'schema': {'type': 'string'},
-                   'validator': validate_dimensions_exist}
+    'name': {
+        'required': True,
+        'type': 'string'
+    },
+    'dimensions': {
+        'required': True,
+        'type': 'list',
+        'schema': {'type': 'string'},
+        'validator': validate_dimensions_exist
+    }
 }
 
 skill_schema_validator = Validator(skill_schema)
 
 
 dimension_schema = {
-    'name': {'required': True, 'type': 'string'}
+    'name': {
+        'required': True,
+        'type': 'string'
+    }
 }
 
 dimension_schema_validator = Validator(dimension_schema)
