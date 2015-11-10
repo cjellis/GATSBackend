@@ -1,7 +1,7 @@
 from app.database.mongo import dimension_collection, skill_collection
 import json
 from cerberus import Validator
-from flask import Blueprint, request
+from flask import Blueprint, request, jsonify
 
 admin = Blueprint('administrator', __name__, url_prefix='/administrator')
 
@@ -57,7 +57,7 @@ def add_skill():
         if mongo_id:
             return "Success"
         return "ERROR: Could not create skill. Please try again"
-    return json.dumps(skill_schema_validator.errors)
+    return jsonify(skill_schema_validator.errors)
 
 
 @admin.route('/addDimension', methods=['POST'])
@@ -68,6 +68,6 @@ def add_dimension():
         if mongo_id:
             return "Success"
         return "ERROR: Could not create dimension. Please try again"
-    return json.dumps(dimension_schema_validator.errors)
+    return jsonify(dimension_schema_validator.errors)
 
 

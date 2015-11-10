@@ -1,7 +1,7 @@
 from app.database.mongo import event_collection, skill_collection
 import json
 from bson import json_util
-from flask import Blueprint, request
+from flask import Blueprint, request, jsonify
 from cerberus import Validator
 import datetime
 
@@ -158,11 +158,10 @@ def add_event():
         if mongo_id:
             return "Success"
         return "ERROR: Could not create event. Please try again"
-    return json.dumps(schemaValidator.errors)
+    return jsonify(schemaValidator.errors)
 
 
 @events.route('/getAllEvents', methods=['GET'])
 def get_all_events():
-    all_events = event_collection.find({}, {"_id": 0})
-    events_from_db = [json.dumps(e, default=json_util.default) for e in all_events]
-    return json.dumps(events_from_db)
+    all_events = list(event_collection.find({}, {"_id": 0}))
+    return jsonify({"events": all_events})
