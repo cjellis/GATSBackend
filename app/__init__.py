@@ -16,4 +16,4 @@ app.config.from_object('config')
 app.register_blueprint(events)
 app.register_blueprint(admin)
 app.register_blueprint(skills)
-app.register_blueprint(dimensions)\
+app.register_blueprint(dimensions)
