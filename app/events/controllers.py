@@ -1,6 +1,5 @@
 from app.database.mongo import event_collection, skill_collection
 import json
-from bson import json_util
 from flask import Blueprint, request, jsonify
 from cerberus import Validator
 import datetime
