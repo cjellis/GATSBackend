@@ -1,6 +1,3 @@
-import sys
-sys.path.append('..')
-
 import unittest
 import app
 import json
