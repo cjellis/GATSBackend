@@ -1,111 +1,167 @@
+from app.database.mongo import event_collection, skill_collection
 import json
-from flask import Flask
-from pymongo import MongoClient
 from bson import json_util
-# Import flask dependencies
-from flask import Blueprint, request
+from flask import Blueprint, request, jsonify
+from cerberus import Validator
+import datetime
 
-# Define the blueprint: 'auth', set its url prefix: app.url/auth
 events = Blueprint('events', __name__, url_prefix='/events')
 
-client = MongoClient("mongodb://admin:admin@ds049864.mongolab.com:49864/activitytracker")
-db = client.activitytracker
-eventCollection = db.Events
-skillCollection = db.Skills
-dimensionCollection = db.Dimensions
 
-dimensions = []
-skills = []
-events_list = []
-
-engagementLevelValues = ["Active", "Passive", "Generative"]
-engagementLengthUnits = ["Day", "Week", "Month", "Semester", "Year"]
+def validate_skills_exist(field, value, error):
+    for v in value:
+        if skill_collection.find({"name": v}).count() is 0:
+            error(field, "Skill does not exist - " + v)
 
 
-def get_dimension_names():
-    global dimensions
-    dimensions = []
-    dimensions_list = dimensionCollection.find()
-    for dimension in dimensions_list:
-        dimensions.append(dimension["name"])
+def validate_title_does_not_exist(field, value, error):
+    if event_collection.find({"title": value}).count() is not 0:
+        error(field, "Event already exists with given title")
 
 
-def get_skill_names():
-    global skills
-    skills = []
-    skills_list = skillCollection.find()
-    for skill in skills_list:
-        skills.append(skill["name"])
+def validate_date(field, value, error):
+    try:
+        datetime.datetime.strptime(value, '%m/%d/%Y')
+    except ValueError:
+        error(field, "Date not in correct format")
 
 
-def get_event_names():
-    global events_list
-    events_list = []
-    events_list_from_db = eventCollection.find()
-    for event in events_list_from_db:
-        events_list.append(event["title"])
+def validate_phone_number(field, value, error):
+    if len(value) is not 10:
+        error(field, "Phone Number not long enough")
 
 
-@events.route('/')
-def index():
-    return "Hello, World!"
+def validate_email(field, value, error):
+    if not value.endswith("@neu.edu"):
+        error(field, "Email is not an @neu email")
 
 
-@events.route('/addSkill', methods=['POST'])
-def add_skill():
-    data = json.loads(request.data)
-    if "name" in data and "dimensions" in data:
-        if data["name"] not in skills:
-            for d in data["dimensions"]:
-                if d not in dimensions:
-                    return "Failure"
-            mongo_id = skillCollection.insert_one(data).inserted_id
-            if mongo_id:
-                skills.append(data["name"])
-                return "Success"
-    return "Failure"
+schema = {
+    'title': {
+        'required': True,
+        'type': 'string',
+        'validator': validate_title_does_not_exist
+    },
+    'format': {
+        'required': True,
+        'type': 'string'
+    },
+    'topics': {
+        'required': True,
+        'type': 'list',
+        'schema': {
+            'type': 'string'
+        }
+    },
+    'description': {
+        'required': True,
+        'type': 'string'
+    },
+    'begin': {
+        'required': True,
+        'type': 'string',
+        'validator': validate_date
+    },
+    'end': {
+        'required': True,
+        'type': 'string',
+        'validator': validate_date
+    },
+    'engagementLengthValue': {
+        'required': True,
+        'type': 'integer'
+    },
+    'engagementLengthUnit': {
+        'required': True,
+        'type': 'string',
+        'allowed': ['Day', 'Week', 'Month', 'Semester', 'Year']
+    },
+    'recurrence': {
+        'required': True,
+        'type': 'string'
+    },
+    'location': {
+        'required': True,
+        'type': 'string'
+    },
+    'sponsoringDepartment': {
+        'required': True,
+        'type': 'string'
+    },
+    'pointOfContact': {
+        'required': True,
+        'type': 'dict',
+        'schema': {
+            'name': {'type': 'string'},
+            'number': {'type': 'string', 'validator': validate_phone_number},
+            'email': {'type': 'string', 'validator': validate_email}
+        }
+    },
+    'outcomes': {
+        'required': True,
+        'type': 'list',
+        'schema': {'type': 'string'}
+    },
+    'skills': {
+        'required': True,
+        'type': 'list',
+        'schema': {'type': 'string'},
+        'validator': validate_skills_exist
+    },
+    'engagementLevel': {
+        'required': True,
+        'type': 'string',
+        'allowed': ['Active', 'Passive', 'Generative']
+    },
 
+    'coopFriendly': {
+        'type': 'boolean'
+    },
+    'academicStanding': {
+        'type': 'list',
+        'schema': {'type': 'string'}
+    },
+    'major': {
+        'type': 'string'
+    },
+    'residentStatus': {
+        'type': 'string',
+        'allowed': ['onCampus', 'offCampus', 'both']
+    },
+    'otherRequirements': {
+        'type': 'list',
+        'schema': {'type': 'string'}
+    }
+    # 'owner': {
+    #         'type': 'string',
+    #         'required': True,
+    #         # referential integrity constraint: value must exist in the
+    #         # 'people' collection. Since we aren't declaring a 'field' key,
+    #         # will default to `people._id` (or, more precisely, to whatever
+    #         # ID_FIELD value is).
+    #         'data_relation': {
+    #             'resource': 'users',
+    #             # make the owner embeddable with ?embedded={"owner":1}
+    #             'embeddable': True
+    #         },
+    # }
+}
 
-@events.route('/addDimension', methods=['POST'])
-def add_dimension():
-    data = json.loads(request.data)
-    if "name" in data:
-        if data["name"] not in dimensions:
-            mongo_id = dimensionCollection.insert_one(data).inserted_id
-            if mongo_id:
-                dimensions.append(data["name"])
-                return "Success"
-    return "Failure"
+schemaValidator = Validator(schema)
 
 
 @events.route('/addEvent', methods=['POST'])
 def add_event():
     data = json.loads(request.data)
-    if "title" in data and "format" in data and "topics" in data:
-        if data["title"] not in events_list:
-            if "description" in data and "begin" in data and "end" in data:
-                if "engagementLengthValue" in data and "engagementLengthUnit" in data:
-                    if "recurrence" in data and "location" in data and "sponsoringDepartment" in data:
-                        if "pointOfContact" in data and "outcomes" in data and "skills" in data:
-                            for s in data["skills"]:
-                                if s not in skills:
-                                    return json.dumps(data)
-                            if "engagementLevel" in data and data["engagementLevel"] in engagementLevelValues:
-                                poc = data["pointOfContact"]
-                                if "name" in poc and "number" in poc and "email" in poc:
-                                    mongo_id = eventCollection.insert_one(data).inserted_id
-                                    if mongo_id:
-                                        events_list.append(data["title"])
-                                        return "Success"
-    return json.dumps(data)
+    if schemaValidator.validate(data):
+        mongo_id = event_collection.insert_one(data).inserted_id
+        if mongo_id:
+            return "Success"
+        return "ERROR: Could not create event. Please try again"
+    return jsonify(schemaValidator.errors)
 
 
 @events.route('/getAllEvents', methods=['GET'])
 def get_all_events():
-    all_events = eventCollection.find()
-    events_from_db = [json.dumps(e, default=json_util.default) for e in all_events]
-    return json.dumps(events_from_db)
-
-get_dimension_names()
-get_event_names()
-get_skill_names()
+    all_events = list(event_collection.find({}, {"_id": 0}))
+    return jsonify({"events": all_events})
