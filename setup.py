@@ -7,5 +7,10 @@ setup(
     author='Team GATS',
     author_email='ellis.cr@husky.neu.edu',
     url='https://www.python.org/sigs/distutils-sig/',
-    packages=['app', 'DBScripts']
+    packages=['app.administrator',
+              'app.database',
+              'app.dimensions',
+              'app.events',
+              'app.skills',
+              'DBScripts']
 )
