@@ -1,4 +1,4 @@
-from app.database.mongo import skill_collection
+from app.database.db_connection import skill_collection
 from flask import Blueprint, jsonify
 
 skills = Blueprint('skills', __name__, url_prefix='/skills')

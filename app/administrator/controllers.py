@@ -1,4 +1,4 @@
-from app.database.mongo import dimension_collection, skill_collection
+from app.database.db_connection import dimension_collection, skill_collection
 import json
 from cerberus import Validator
 from flask import Blueprint, request, jsonify

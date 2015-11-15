@@ -13,6 +13,5 @@ setup(
               'app.dimensions',
               'app.events',
               'app.skills',
-              'DBScripts'],
-    py_modules=['app.database.mongo']
+              'DBScripts']
 )

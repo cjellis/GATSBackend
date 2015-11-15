@@ -1,4 +1,4 @@
-from app.database.mongo import dimension_collection
+from app.database.db_connection import dimension_collection
 from flask import Blueprint, jsonify
 
 dimensions = Blueprint('dimensions', __name__, url_prefix='/dimensions')
