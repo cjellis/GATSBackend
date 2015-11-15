@@ -176,5 +176,4 @@ class AppTestCase(unittest.TestCase):
         assert "Event already exists with given title" in rv.data
         assert "Phone Number not long enough" in rv.data
         assert "Email is not an @neu email" in rv.data
-        assert "Bleh" in rv.data
 
