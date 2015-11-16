@@ -5,3 +5,4 @@ db = client.activitytracker
 event_collection = db.Events
 skill_collection = db.Skills
 dimension_collection = db.Dimensions
+user_collection = db.Users

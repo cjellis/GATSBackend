@@ -1,10 +1,10 @@
-from app.database.mongo import user_collection
+from app.database.db_connection import user_collection
 import json, uuid, binascii
 from bson import json_util
 
 class User():
     def __init__(self, o_id = None, token = None):
-        if(o_id != None:):
+        if(o_id != None):
             mongo_user = user_collection.find_one({'_id': o_id})
         else:
             mongo_user = user_collection.find_one({'token': token})
@@ -36,7 +36,7 @@ class User():
         self.skills = []
         self.dimensions = []
         
-    @staticmehtod
+    @staticmethod
     def create_new_user(firstname, lastname, email, password, year, major):
         if 'husky.neu.edu' in email:
             user = User(firstname, lastname, email, ['Student'], password, year, major)
@@ -65,6 +65,7 @@ class User():
             'skills': skills,
             'dimensions': dimensions
         }
+        return json_dict
         
     def is_authorized(self):
         return is_auth
@@ -77,7 +78,7 @@ class User():
             {'_id': 'o_id'},
             {'$set': {'tokenTTL': (tokenTTL - 1)}})        
     
-    @staticmehtod
+    @staticmethod
     def authorize(o_id, token):
         tmp_user = user_collection.find_one({'_id': o_id})
         hash_token = hashlib.pbkdf2_hmac('sha256', tmp_user['token'], b'salt', 100000)

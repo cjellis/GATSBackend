@@ -7,6 +7,7 @@ def add_data():
     event_collection = db.Events
     skill_collection = db.Skills
     dimension_collection = db.Dimensions
+    user_collection = db.Users
 
     dimension_collection.insert_one({"name": "Intellectual Agility"})
     dimension_collection.insert_one({"name": "Global Awareness"})

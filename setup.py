@@ -13,5 +13,6 @@ setup(
               'app.dimensions',
               'app.events',
               'app.skills',
+              'app.users'
               'DBScripts']
 )
