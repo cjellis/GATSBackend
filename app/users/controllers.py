@@ -1,4 +1,4 @@
-from app.database.db_connection import user_collection as users
+from app.database.db_connection import user_collection as usersdb
 from app.database.db_connection import event_collection as events
 from app.database.db_connection import dimension_collection as dimensions
 from app.database.db_connection import skill_collection as skills
@@ -20,8 +20,8 @@ def validate_unique(field, value, error, db, search):
     if db.find_one({search: value}):
         self._error(field, "value '%s' is not unique" % value)
         
-validate_email = lambda field, value, error: valvalidate_unique(field, value, error, users, 'email')
-validate_token = lambda field, value, error: valvalidate_unique(field, value, error, users, 'token')
+validate_email = lambda field, value, error: validate_unique(field, value, error, usersdb, 'email')
+validate_token = lambda field, value, error: validate_unique(field, value, error, usersdb, 'token')
 validate_event = lambda field, value, error: validate_objectid(field, value, error, events)
 validate_skill = lambda field, value, error: validate_objectid(field, value, error, skills)
 validate_dimension = lambda field, value, error: validate_objectid(field, value, error, dimensions)
@@ -44,7 +44,7 @@ schema = {
     },
     'email': {
         'type': 'string',
-        'regex': '^[a-zA-Z0-9_.+-]+@northeastern\.edu|neu\.edu|husky\.neu\.edu',
+        'regex': '(^[a-zA-Z0-9_.+-]+@)(northeastern\.edu|neu\.edu|husky\.neu\.edu)',
         'required': True,
         'validator': validate_email
     },
@@ -108,15 +108,15 @@ schemaValidator = MyValidator(schema)
 
 @users.route('/test', methods=['GET'])
 def get_test():
-    return 'SUCESS'
+    return 'SUCCESS'
 
 @users.route('/addUser', methods=['POST'])
 def addUser():
-    print request.data
     data = json.loads(request.data)
     if schemaValidator.validate(data):
         user = User.create_user(data['firstname'], data['lastname'],
-                                   data['email'], password['year'], major['major'])
+                                   data['email'], data['password'],
+                                    data['year'], major['major'])
         if user != None:
             return json.dump({
                 'response': {
