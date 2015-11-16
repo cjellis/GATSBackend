@@ -1,12 +1,32 @@
-from app.database.db_connection import user_collection
+from app.database.db_connection import user_collection as users
+from app.database.db_connection import event_collection as events
+from app.database.db_connection import dimension_collection as dimensions
+from app.database.db_connection import skill_collection as skills
 import json
 from bson import json_util
 from flask import Blueprint, request, jsonify
-from cerberus import Validator
+from app.utils.validators import MyValidator
 from app.users.user_model import User
 
 users = Blueprint('users', __name__, url_prefix='/users')
 
+
+def validate_objectid(field, value, error, db):
+    if not re.match('[a-f0-9]{24}', value) and db.find_one({'_id': value}):
+        self._error(field, ERROR_BAD_TYPE.format('ObjectId'))
+
+#validator for unique type
+def validate_unique(field, value, error, db, search):
+    if db.find_one({search: value}):
+        self._error(field, "value '%s' is not unique" % value)
+        
+validate_email = lambda field, value, error: valvalidate_unique(field, value, error, users, 'email')
+validate_token = lambda field, value, error: valvalidate_unique(field, value, error, users, 'token')
+validate_event = lambda field, value, error: validate_objectid(field, value, error, events)
+validate_skill = lambda field, value, error: validate_objectid(field, value, error, skills)
+validate_dimension = lambda field, value, error: validate_objectid(field, value, error, dimensions)
+
+    
 schema = {
     # Schema definition, based on Cerberus grammar. Check the Cerberus project
     # (https://github.com/nicolaiarocci/cerberus) for details.
@@ -26,7 +46,7 @@ schema = {
         'type': 'string',
         'regex': '^[a-zA-Z0-9_.+-]+@northeastern\.edu|neu\.edu|husky\.neu\.edu',
         'required': True,
-        'unique': True
+        'validator': validate_email
     },
     'password': {
         'type': 'string',
@@ -36,23 +56,21 @@ schema = {
     'token': {
         'type': 'string',
         'required': True,
-        'unique': True
+        'validator': validate_token
     },
     'tokenTTL': {
         'type': 'integer',
         'required': True
     },
     'is_auth': {
-        type: 'boolean',
+        'type': 'boolean',
         'required': True
     },
     'events': {
         'type': 'list',
         'schema': {
             'type': 'objectid',
-            'data_relation': {
-                'resource': 'Events',
-            }
+            'validator': validate_event
         }
     },
     # 'role' is a list, and can only contain values from 'allowed'.
@@ -73,27 +91,28 @@ schema = {
         'type': 'list',
         'schema': {
             'type': 'objectid',
-            'data_relation': {
-                'resource': 'Skills',
-            }
+            'validator': validate_skill
+            
         }
     },
     'dimensions': {
         'type': 'list',
         'schema': {
             'type': 'objectid',
-            'data_relation': {
-                'resource': 'Dimensions',
-            }
+            'validator': validate_dimension,
         }
     }
 }
 
-schemaValidator = Validator(schema)
+schemaValidator = MyValidator(schema)
+
+@users.route('/test', methods=['GET'])
+def get_test():
+    return 'SUCESS'
 
 @users.route('/addUser', methods=['POST'])
-def add_user():
-    print data
+def addUser():
+    print request.data
     data = json.loads(request.data)
     if schemaValidator.validate(data):
         user = User.create_user(data['firstname'], data['lastname'],
@@ -119,10 +138,14 @@ def verify_user():
     else:
         return "ERROR: Could not authorize user. Please try again"
 
-@users.route('/getUser/id/<auth_token>/<email>', methods=['GET'])
+@users.route('/getUser/em/<email>/<auth_token>/', methods=['GET'])
+@users.route('/getUser/id/<id>/<auth_token>/', methods=['GET'])
 def get_user():
-    all_events = list(user_collection.find({}, {"_id": 0}))
-    return jsonify({"events": all_events})
+    requester = User(auth_token)
+    if(requester.email == email or 'admin' in requester.roles):
+        return requester.json_dump()
+    else:
+        return "Error: Permision Denied"
 
 
 
