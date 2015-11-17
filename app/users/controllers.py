@@ -2,7 +2,7 @@ from app.database.db_connection import user_collection as usersdb
 from app.database.db_connection import event_collection as events
 from app.database.db_connection import dimension_collection as dimensions
 from app.database.db_connection import skill_collection as skills
-import json
+import json, app
 from bson import json_util
 from flask import Blueprint, request, jsonify
 from app.users.user_model import User
@@ -110,9 +110,13 @@ def add_user():
     data = json.loads(request.data)
     user = None
     try:
-        user = User(data['firstname'], data['lastname'],
-                           data['email'], data['password'],
-                            data['year'], data['major'])
+        email = data['email']
+        if app.app.config['DEBUG']:
+            email = User.fix_email_bug(email)
+            
+        user = User(data['firstname'], data['lastname'], email,
+                    data['password'], data['year'], data['major'])
+        
     except Exception as e:
         print e
         return json.dumps({ 'code': 400, 'msg': 'Fail'})
@@ -149,7 +153,6 @@ def get_user(email, auth_token):
         return requested_user.json_dump()
     else:
         return "Error: Permision Denied"
-
 
 
 

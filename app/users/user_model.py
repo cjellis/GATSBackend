@@ -108,6 +108,19 @@ class User():
         else:
             return 'Error'
         
+    # fixes the exploit that allows users to repeatedly register with the same email account
+    @staticmethod
+    def fix_email_bug(email):
+        if '+' in email:
+            l = email.split('+')
+            l2 = l[1].split('@')
+            if len(l2) > 1:
+                return l[0] + '@' + l2[1]
+            else:
+                return l[0] + l[1]
+        else:
+            return email
+    
     @staticmethod
     def get_user_from_db(o_id = None, token = None, email = None):
         if(o_id != None):
