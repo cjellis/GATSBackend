@@ -1,6 +1,8 @@
+import os, uuid
 from app.database.db_connection import user_collection
 import json, uuid, binascii
 from bson import json_util
+
 
 class User():
     def __init__(self, o_id = None, token = None):
@@ -11,7 +13,8 @@ class User():
         self.o_id = o_id
         self.f_name = mongo_user['firstname'] 
         self.l_name = mongo_user['lastname']
-        self.email = mongo_user['password']
+        self.email = mongo_user['email']
+        self.password = mongo_user['password']
         self.token = mongo_user['token']
         self.tokenTTL = mongo_user['tokenTTL'] # update time to live
         self.is_auth = mongo_user['is_auth']
@@ -26,66 +29,71 @@ class User():
         self.f_name = firstname 
         self.l_name = lastname
         self.email = email
-        self.token = os.urandom(32)
+        self.password = password
+        self.token = User.gen_token()
         self.tokenTTL = 50 #this number is increased when account is authorized
         self.is_auth = False
-        self.roles = roles
+        self.roles = User.get_role(email)
         self.events = []
         self.year = year
         self.major = major
         self.skills = []
         self.dimensions = []
-        
-    @staticmethod
-    def create_new_user(firstname, lastname, email, password, year, major):
-        if 'husky.neu.edu' in email:
-            user = User(firstname, lastname, email, ['Student'], password, year, major)
-            user.o_id = user_collection.insert_one(user.json_dump()).inserted_id
-            user.send_verify()
-            return user
-        elif 'northeastern.neu' in email or 'neu.edu' in email:
-            user = User(firstname, lastname, email, ['Faculty'], password, None, None)
-            user.o_id = user_collection.insert_one(user.json_dump()).inserted_id
-            user.send_verify()
-            return user
-        else:
-            None
+            
         
     def json_dump(self):
         json_dict = {
-            'firstname': f_name,
-            'lastname': l_name,
-            'email': email,
-            'password': password,
-            'tokenTTL': tokenTTL,
-            'events': events,
-            'roles': roles,
-            'year': year,
-            'major': major,
-            'skills': skills,
-            'dimensions': dimensions
+            'firstname': self.f_name,
+            'lastname': self.l_name,
+            'email': self.email,
+            'password': self.password,
+            'token': self.token,
+            'tokenTTL': self.tokenTTL,
+            'is_auth': self.is_auth,
+            'events': self.events,
+            'roles': self.roles,
+            'year': self.year,
+            'major': self.major,
+            'skills': self.skills,
+            'dimensions': self.dimensions
         }
         return json_dict
         
     def is_authorized(self):
-        return is_auth
+        return self.is_auth
     
     def send_verify():
         return
     
     def update_ttl(self):
         user_collection.result = user_collection.update_one(
-            {'_id': 'o_id'},
-            {'$set': {'tokenTTL': (tokenTTL - 1)}})        
+            {'_id': self.o_id},
+            {'$set': {'tokenTTL': (self.tokenTTL - 1)}})        
+    
+    @staticmethod
+    def gen_token():
+        return str(uuid.uuid1())
     
     @staticmethod
     def authorize(o_id, token):
-        tmp_user = user_collection.find_one({'_id': o_id})
+        tmp_user = user_collection.find_one({'_id': self.o_id})
         hash_token = hashlib.pbkdf2_hmac('sha256', tmp_user['token'], b'salt', 100000)
         if token == hash_token:
             user_collection.result = user_collection.update_one(
-                {'_id': 'o_id'},
-                {'$set': {'is_auth': True}})
+                {'_id': self.o_id},
+                {
+                    '$set': {'is_auth': True},
+                    '$set': {'tokenTTL': 500} #increase as nesseceary
+                })
             return True
         else:
             return False
+        
+    @staticmethod
+    def get_role(email):
+        if 'husky.neu.edu' in email:
+            return ['student']
+        elif 'northeastern.edu' in email or 'neu.edu' in email:
+            return ['faculty']
+        else:
+            return 'Error'

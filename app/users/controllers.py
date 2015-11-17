@@ -5,20 +5,19 @@ from app.database.db_connection import skill_collection as skills
 import json
 from bson import json_util
 from flask import Blueprint, request, jsonify
-from app.utils.validators import MyValidator
 from app.users.user_model import User
+from app.utils.validators import MyValidator
 
 users = Blueprint('users', __name__, url_prefix='/users')
 
-
 def validate_objectid(field, value, error, db):
     if not re.match('[a-f0-9]{24}', value) and db.find_one({'_id': value}):
-        self._error(field, ERROR_BAD_TYPE.format('ObjectId'))
+        error(field, ERROR_BAD_TYPE.format('ObjectId'))
 
 #validator for unique type
 def validate_unique(field, value, error, db, search):
     if db.find_one({search: value}):
-        self._error(field, "value '%s' is not unique" % value)
+        error(field, "value '%s' is not unique" % value)
         
 validate_email = lambda field, value, error: validate_unique(field, value, error, usersdb, 'email')
 validate_token = lambda field, value, error: validate_unique(field, value, error, usersdb, 'token')
@@ -106,29 +105,31 @@ schema = {
 
 schemaValidator = MyValidator(schema)
 
-@users.route('/test', methods=['GET'])
-def get_test():
-    return 'SUCCESS'
-
 @users.route('/addUser', methods=['POST'])
 def addUser():
     data = json.loads(request.data)
+    user = None
+    try:
+        user = User(data['firstname'], data['lastname'],
+                           data['email'], data['password'],
+                            data['year'], data['major'])
+    except Exception as e:
+        print e
+        return json.dumps({ 'code': 400, 'msg': 'Fail'})
+    
+    data = user.json_dump()
     if schemaValidator.validate(data):
-        user = User.create_user(data['firstname'], data['lastname'],
-                                   data['email'], data['password'],
-                                    data['year'], major['major'])
-        if user != None:
-            return json.dump({
-                'response': {
-                    'code': 200,
-                    'msg': 'Success'
-                },
-                'user': {
-                    'user_oid': user.o_id,
-                    'token': user.token,
-                }
-            })
-        return "ERROR: Could not add user. Please try again"
+        o_id = usersdb.insert_one(data).inserted_id
+        return json.dumps({
+            'response': {
+                'code': 200,
+                'msg': 'Success'
+            },
+            'user': {
+                'user_oid': str(o_id),
+                'token': user.token,
+            }
+        })
     return jsonify(schemaValidator.errors)
 
 @users.route('/verifyUser/<o_id>/<token>')
