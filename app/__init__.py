@@ -1,6 +1,6 @@
 # Import flask and template operators
 from flask import Flask
-
+from flask.ext.mail import Mail
 # Import a module / component using its blueprint handler variable
 from app.events.controllers import events as events
 from app.administrator.controllers import admin as admin
@@ -22,3 +22,6 @@ app.register_blueprint(skills)
 app.register_blueprint(dimensions)
 app.register_blueprint(users)
 app.register_blueprint(utils)
+
+# start mail instance
+mail = Mail(app)

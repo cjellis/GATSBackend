@@ -106,7 +106,7 @@ schema = {
 schemaValidator = MyValidator(schema)
 
 @users.route('/addUser', methods=['POST'])
-def addUser():
+def add_user():
     data = json.loads(request.data)
     user = None
     try:
@@ -120,6 +120,7 @@ def addUser():
     data = user.json_dump()
     if schemaValidator.validate(data):
         o_id = usersdb.insert_one(data).inserted_id
+        user.send_verify(o_id)
         return json.dumps({
             'response': {
                 'code': 200,
@@ -139,8 +140,8 @@ def verify_user():
     else:
         return "ERROR: Could not authorize user. Please try again"
 
+#@users.route('/getUser/id/<id>/<auth_token>/', methods=['GET'])    #add later if needed
 @users.route('/getUser/em/<email>/<auth_token>/', methods=['GET'])
-@users.route('/getUser/id/<id>/<auth_token>/', methods=['GET'])
 def get_user():
     requester = User(auth_token)
     if(requester.email == email or 'admin' in requester.roles):

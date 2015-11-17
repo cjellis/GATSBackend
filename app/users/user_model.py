@@ -1,8 +1,8 @@
-import os, uuid
+import os, uuid, app, hashlib
 from app.database.db_connection import user_collection
 import json, uuid, binascii
 from bson import json_util
-
+from flask.ext.mail import Message
 
 class User():
     def __init__(self, o_id = None, token = None):
@@ -62,8 +62,12 @@ class User():
     def is_authorized(self):
         return self.is_auth
     
-    def send_verify():
-        return
+    def send_verify(self, o_id):
+        hash_token = str(hashlib.pbkdf2_hmac('sha256', self.token, b'salt', 100000))
+        msg = Message("{0}/users/verifyUser/{1}/{2}".format(app.app.config['SERVER_NAME'], o_id, hash_token),
+              sender="do.not.reply@gats-northeastern.com",
+              recipients=[self.email])
+        app.mail.send(msg)
     
     def update_ttl(self):
         user_collection.result = user_collection.update_one(
