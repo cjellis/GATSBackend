@@ -11,7 +11,7 @@ from app.utils.validators import MyValidator
 users = Blueprint('users', __name__, url_prefix='/users')
 
 def validate_objectid(field, value, error, db):
-    if not re.match('[a-f0-9]{24}', value) and db.find_one({'_id': value}):
+    if not re.match('[a-f0-9]{24}', value) and db.find_one({'_id': ObjectId(value)}):
         error(field, ERROR_BAD_TYPE.format('ObjectId'))
 
 #validator for unique type
@@ -21,9 +21,9 @@ def validate_unique(field, value, error, db, search):
         
 validate_email = lambda field, value, error: validate_unique(field, value, error, usersdb, 'email')
 validate_token = lambda field, value, error: validate_unique(field, value, error, usersdb, 'token')
-validate_event = lambda field, value, error: validate_objectid(field, value, error, events)
-validate_skill = lambda field, value, error: validate_objectid(field, value, error, skills)
-validate_dimension = lambda field, value, error: validate_objectid(field, value, error, dimensions)
+validate_event = lambda field, value, error: validate_objectid(field, ObjectId(value), error, events)
+validate_skill = lambda field, value, error: validate_objectid(field, ObjectId(value), error, skills)
+validate_dimension = lambda field, value, error: validate_objectid(field, ObjectId(value), error, dimensions)
 
     
 schema = {
