@@ -3,5 +3,6 @@ from app import app
 import os
 
 # Bind to PORT if defined, otherwise default to 5000.
-port = int(os.environ.get('PORT', 5000))
-app.run(host='0.0.0.0', port=port)
+port = int(os.environ.get('PORT', app.config['PORT']))
+l_host = app.config['HOST']
+app.run(host=l_host, port=port)

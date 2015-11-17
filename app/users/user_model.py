@@ -1,31 +1,12 @@
-import os, uuid, app, hashlib
+import os, uuid, app, hashlib, base64
 from app.database.db_connection import user_collection
 import json, uuid, binascii
 from bson import json_util
 from flask.ext.mail import Message
 
 class User():
-    def __init__(self, o_id = None, token = None):
-        if(o_id != None):
-            mongo_user = user_collection.find_one({'_id': o_id})
-        else:
-            mongo_user = user_collection.find_one({'token': token})
-        self.o_id = o_id
-        self.f_name = mongo_user['firstname'] 
-        self.l_name = mongo_user['lastname']
-        self.email = mongo_user['email']
-        self.password = mongo_user['password']
-        self.token = mongo_user['token']
-        self.tokenTTL = mongo_user['tokenTTL'] # update time to live
-        self.is_auth = mongo_user['is_auth']
-        self.events = json.loads(mongo_user['events'])
-        self.roles = json.loads(mongo_user['roles'])
-        self.year = mongo_user['year']
-        self.major = mongo_user['major']
-        self.skills = mongo_user['skills']
-        self.dimensions = mongo_user['dimensions']
-        
-    def __init__(self, firstname, lastname, email, password, year, major):
+    def __init__(self, firstname, lastname, email, password, year, major, o_id = None):
+        self.o_id = None
         self.f_name = firstname 
         self.l_name = lastname
         self.email = email
@@ -63,9 +44,9 @@ class User():
         return self.is_auth
     
     def send_verify(self, o_id):
-        hash_token = str(hashlib.pbkdf2_hmac('sha256', self.token, b'salt', 100000))
-        msg = Message("{0}/users/verifyUser/{1}/{2}".format(app.app.config['SERVER_NAME'], o_id, hash_token),
-              sender="do.not.reply@gats-northeastern.com",
+        hash_token = User.gen_hash(self.token)
+        msg = Message("http://{0}/users/verifyUser/{1}/{2}".format(app.app.config['HOST'], o_id, hash_token),
+              sender=('GATS', app.app.config['MAIL_USERNAME']),
               recipients=[self.email])
         app.mail.send(msg)
     
@@ -79,10 +60,15 @@ class User():
         return str(uuid.uuid1())
     
     @staticmethod
+    def gen_hash(token):
+        #creates a url safe hash token
+        return base64.urlsafe_b64encode(hashlib.md5(token).digest())[:11]
+    
+    @staticmethod
     def authorize(o_id, token):
-        tmp_user = user_collection.find_one({'_id': self.o_id})
-        hash_token = hashlib.pbkdf2_hmac('sha256', tmp_user['token'], b'salt', 100000)
-        if token == hash_token:
+        tmp_user = User.get_user_from_db(o_id = o_id)
+        hash_token = User.gen_hash(token)
+        if User.get_hash(tmp_user.token) == hash_token:
             user_collection.result = user_collection.update_one(
                 {'_id': self.o_id},
                 {
@@ -101,3 +87,26 @@ class User():
             return ['faculty']
         else:
             return 'Error'
+        
+    @staticmethod
+    def get_user_from_db(o_id = None, token = None, email = None):
+        if(o_id != None):
+            mongo_user = user_collection.find_one({'_id': o_id})
+        elif token != None:
+            mongo_user = user_collection.find_one({'token': token})
+        else:
+            mongo_user = user_collection.find_one({'email': email})
+        return User(mongo_user['firstname'],
+                    mongo_user['lastname'],
+                    mongo_user['email'],
+                    mongo_user['password'],
+                    mongo_user['token'],
+                    mongo_user['tokenTTL'], # update time to live
+                    mongo_user['is_auth'],
+                    json.loads(mongo_user['events']),
+                    json.loads(mongo_user['roles']),
+                    mongo_user['year'],
+                    mongo_user['major'],
+                    mongo_user['skills'],
+                    mongo_user['dimensions'],
+                    mongo_user['_id'])

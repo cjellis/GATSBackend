@@ -134,7 +134,7 @@ def add_user():
     return jsonify(schemaValidator.errors)
 
 @users.route('/verifyUser/<o_id>/<token>')
-def verify_user():
+def verify_user(o_id, token):
     if User.authorize(o_id, token):
         return "Success"
     else:
@@ -142,10 +142,11 @@ def verify_user():
 
 #@users.route('/getUser/id/<id>/<auth_token>/', methods=['GET'])    #add later if needed
 @users.route('/getUser/em/<email>/<auth_token>/', methods=['GET'])
-def get_user():
-    requester = User(auth_token)
+def get_user(email, auth_token):
+    requester = User.get_user_from_db(token = auth_token)
+    requested_user = User.get_user_from_db(email = email)
     if(requester.email == email or 'admin' in requester.roles):
-        return requester.json_dump()
+        return requested_user.json_dump()
     else:
         return "Error: Permision Denied"
 

@@ -4,6 +4,10 @@ import os
 # Statement for enabling the development environment
 DEBUG = True
 
+#change when needed
+HOST = '0.0.0.0'
+PORT = 5000
+
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 # Application threads. A common general assumption is
@@ -21,3 +25,11 @@ CSRF_SESSION_KEY = "secret"
 
 # Secret key for signing cookies
 SECRET_KEY = "secret"
+
+# mail settings
+MAIL_SERVER = 'smtp.gmail.com'
+MAIL_PORT = 587
+MAIL_USE_TLS = True
+MAIL_USE_SSL = False
+MAIL_USERNAME = 'gats.server@gmail.com'
+MAIL_PASSWORD = 'tbtsc2015'
