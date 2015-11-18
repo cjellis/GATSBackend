@@ -106,10 +106,12 @@ schema = {
 
 schemaValidator = MyValidator(schema)
 
+
 @users.route('/addUser', methods=['POST'])
 def add_user():
     data = json.loads(request.data)
     user = None
+    email = data['email']
     email = User.fix_email_bug(email)
     #comment back in to do testing on a single address
     #email = data['email']
@@ -124,6 +126,7 @@ def add_user():
         return msg_tools.response_success(objects = {'user': { 'user_oid': str(o_id), 'token': user.token}})
     return msg_tools.response_fail(objects = schemaValidator.errors)
 
+
 @users.route('/verifyUser/<o_id>/<token>', methods=['GET'])
 def verify_user(o_id, token):
     if User.authorize(o_id, token):
@@ -131,13 +134,13 @@ def verify_user(o_id, token):
     else:
         return "We could not authorize you. Please try again"
 
-#@users.route('/getUser/id/<id>/<auth_token>/', methods=['GET'])    #add later if needed
-@users.route('/getUser/em/<email>/<auth_token>/', methods=['GET'])
+#@users.route('/getUser/id/<id>/<auth_token>', methods=['GET'])    #add later if needed
+@users.route('/getUser/em/<email>/<auth_token>', methods=['GET'])
 def get_user(email, auth_token):
     requester = User.get_user_from_db(token = auth_token)
     requested_user = User.get_user_from_db(email = email)
     if(requester.email == email or 'admin' in requester.roles):
-        return msg_tools.response_success(objects = requested_user.json_dump())
+        return msg_tools.response_success(objects=requested_user.json_dump())
     else:
         return msg_tools.response_fail(code = 401, objects = {'error': 'permission denied'})
 

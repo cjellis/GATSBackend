@@ -87,7 +87,7 @@ class User():
         print tmp_user.email
         print tmp_user.token
         print tmp_user_token
-        print token
+        print "Token: " + token
         if tmp_user_token == token:
             user_collection.result = user_collection.update_one(
                 {'_id': ObjectId(o_id)},

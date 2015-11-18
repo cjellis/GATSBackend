@@ -14,5 +14,6 @@ setup(
               'app.events',
               'app.skills',
               'app.users',
+              'app.utils',
               'DBScripts']
 )

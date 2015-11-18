@@ -1,7 +1,6 @@
 import unittest
 import app
 import json
-from Flask import jsonify
 from pymongo import MongoClient
 
 
@@ -14,10 +13,12 @@ class AppTestCase(unittest.TestCase):
         event_collection = db.Events
         skill_collection = db.Skills
         dimension_collection = db.Dimensions
+        user_collection = db.Users
 
         event_collection.remove({})
         skill_collection.remove({})
         dimension_collection.remove({})
+        user_collection.remove({})
 
         self.app = app.app.test_client()
 
@@ -177,49 +178,46 @@ class AppTestCase(unittest.TestCase):
         assert "Event already exists with given title" in rv.data
         assert "Phone Number not long enough" in rv.data
         assert "Email is not an @neu email" in rv.data
-        
-        def test_add_user(self):
-            test_user = {
-                            "firstname": "John",
-                            "lastname": "Smith",
-                            "email": "smith.j@husky.neu.edu",
-                            "password": "password",
-                            "year": "Sophomore",
-                            "major": "Psycology"
-                        }
-            rv = self.app.post('/users/addUser',
-                           data=jsonify(test_user),
-                           content_type='application/json')
-            data = rv['data']
-            assert "Success" in rv.data
 
-            rv = self.app.post('/users/addUser',
-                           data=jsonify(test_user),
-                           content_type='application/json')
-            assert "is not unique" in rv.data and "email"
-            
-            
-        def test_get_user(self):
-            test_user = {
-                "firstname": "John",
-                "lastname": "Smith",
-                "email": "smith.j2@husky.neu.edu",
-                "password": "password",
-                "year": "Sophomore",
-                "major": "Psycology"
-            }
-            
-            response = self.app.post('/users/addUser',
-                           data=jsonify(test_user),
-                           content_type='application/json')
-            rv = self.app.post('/users/getUser/{0}/{1}'.format(test_user['email'],
-                                                              response['data']['token']),
-                                data=jsonify(test_user),
-                                content_type='application/json')
-            assert rv['code'] is 200
-            assert rv['data']['email'] is test_user['email']
-            
-            
-        
-        
+    def test_add_user(self):
+        test_user = {
+                        "firstname": "John",
+                        "lastname": "Smith",
+                        "email": "smith.j@husky.neu.edu",
+                        "password": "password",
+                        "year": "Sophomore",
+                        "major": "Psycology"
+                    }
+        rv = self.app.post('/users/addUser',
+                       data=json.dumps(test_user),
+                       content_type='application/json')
+        data = json.loads(rv.data)
+        assert data['response']['code'] == 200
+        assert "Success" in data['response']['msg']
 
+        rv = self.app.post('/users/addUser',
+                       data=json.dumps(test_user),
+                       content_type='application/json')
+        data = json.loads(rv.data)
+        assert "is not unique" in data['data']['email']
+
+    def test_get_user(self):
+        test_user = {
+            "firstname": "John",
+            "lastname": "Smith",
+            "email": "smith.j2@husky.neu.edu",
+            "password": "password",
+            "year": "Sophomore",
+            "major": "Psycology"
+        }
+
+        response = self.app.post('/users/addUser',
+                       data=json.dumps(test_user),
+                       content_type='application/json')
+        resp = json.loads(response.data)
+        url = '/users/getUser/em/{0}/{1}'.format(test_user['email'],
+                                            resp['data']['user']['token'])
+        rv = self.app.get(url, data=json.dumps(test_user), content_type='application/json')
+        data = json.loads(rv.data)
+        assert data['response']['code'] is 200
+        assert data['data']['email'] == test_user['email']
