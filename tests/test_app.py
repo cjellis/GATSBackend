@@ -1,6 +1,7 @@
 import unittest
 import app
 import json
+from Flask import jsonify
 from pymongo import MongoClient
 
 
@@ -176,4 +177,49 @@ class AppTestCase(unittest.TestCase):
         assert "Event already exists with given title" in rv.data
         assert "Phone Number not long enough" in rv.data
         assert "Email is not an @neu email" in rv.data
+        
+        def test_add_user(self):
+            test_user = {
+                            "firstname": "John",
+                            "lastname": "Smith",
+                            "email": "smith.j@husky.neu.edu",
+                            "password": "password",
+                            "year": "Sophomore",
+                            "major": "Psycology"
+                        }
+            rv = self.app.post('/users/addUser',
+                           data=jsonify(test_user),
+                           content_type='application/json')
+            data = rv['data']
+            assert "Success" in rv.data
+
+            rv = self.app.post('/users/addUser',
+                           data=jsonify(test_user),
+                           content_type='application/json')
+            assert "is not unique" in rv.data and "email"
+            
+            
+        def test_get_user(self):
+            test_user = {
+                "firstname": "John",
+                "lastname": "Smith",
+                "email": "smith.j2@husky.neu.edu",
+                "password": "password",
+                "year": "Sophomore",
+                "major": "Psycology"
+            }
+            
+            response = self.app.post('/users/addUser',
+                           data=jsonify(test_user),
+                           content_type='application/json')
+            rv = self.app.post('/users/getUser/{0}/{1}'.format(test_user['email'],
+                                                              response['data']['token']),
+                                data=jsonify(test_user),
+                                content_type='application/json')
+            assert rv['code'] is 200
+            assert rv['data']['email'] is test_user['email']
+            
+            
+        
+        
 

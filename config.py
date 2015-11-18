@@ -26,6 +26,9 @@ CSRF_SESSION_KEY = "secret"
 # Secret key for signing cookies
 SECRET_KEY = "secret"
 
+# MongoDB settings
+MONGODB_URL = "mongodb://admin:admin@ds049864.mongolab.com:49864/activitytracker"
+
 # mail settings
 MAIL_SERVER = 'smtp.gmail.com'
 MAIL_PORT = 587
@@ -33,3 +36,4 @@ MAIL_USE_TLS = True
 MAIL_USE_SSL = False
 MAIL_USERNAME = 'gats.server@gmail.com'
 MAIL_PASSWORD = 'tbtsc2015'
+TESTING = False

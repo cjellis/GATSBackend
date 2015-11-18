@@ -110,17 +110,13 @@ schemaValidator = MyValidator(schema)
 def add_user():
     data = json.loads(request.data)
     user = None
-    try:
-        email = data['email']
-        if app.app.config['DEBUG']:
-            email = User.fix_email_bug(email)
-            
-        user = User(data['firstname'], data['lastname'], email,
-                    data['password'], data['year'], data['major'])
+    email = User.fix_email_bug(email)
+    #comment back in to do testing on a single address
+    #email = data['email']
+
+    user = User(data['firstname'], data['lastname'], email,
+                data['password'], data['year'], data['major'])
         
-    except Exception as e:
-        return msg_tools.response_server_fail()
-    
     data = user.json_dump()
     if schemaValidator.validate(data):
         o_id = usersdb.insert_one(data).inserted_id
