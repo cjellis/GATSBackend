@@ -7,6 +7,7 @@ from bson import json_util
 from flask import Blueprint, request, jsonify
 from app.users.user_model import User
 from app.utils.validators import MyValidator
+from app.utils.msg_tools import ResponseTools as msg_tools
 
 users = Blueprint('users', __name__, url_prefix='/users')
 
@@ -118,31 +119,21 @@ def add_user():
                     data['password'], data['year'], data['major'])
         
     except Exception as e:
-        print e
-        return json.dumps({ 'code': 400, 'msg': 'Fail'})
+        return msg_tools.response_server_fail()
     
     data = user.json_dump()
     if schemaValidator.validate(data):
         o_id = usersdb.insert_one(data).inserted_id
         user.send_verify(o_id)
-        return json.dumps({
-            'response': {
-                'code': 200,
-                'msg': 'Success'
-            },
-            'user': {
-                'user_oid': str(o_id),
-                'token': user.token,
-            }
-        })
-    return jsonify(schemaValidator.errors)
+        return msg_tools.response_success(objects = {'user': { 'user_oid': str(o_id), 'token': user.token}})
+    return msg_tools.response_fail(objects = schemaValidator.errors)
 
-@users.route('/verifyUser/<o_id>/<token>')
+@users.route('/verifyUser/<o_id>/<token>', methods=['GET'])
 def verify_user(o_id, token):
     if User.authorize(o_id, token):
-        return "Success"
+        return "Successefuly authorized you!"
     else:
-        return "ERROR: Could not authorize user. Please try again"
+        return "We could not authorize you. Please try again"
 
 #@users.route('/getUser/id/<id>/<auth_token>/', methods=['GET'])    #add later if needed
 @users.route('/getUser/em/<email>/<auth_token>/', methods=['GET'])
@@ -150,9 +141,9 @@ def get_user(email, auth_token):
     requester = User.get_user_from_db(token = auth_token)
     requested_user = User.get_user_from_db(email = email)
     if(requester.email == email or 'admin' in requester.roles):
-        return requested_user.json_dump()
+        return msg_tools.response_success(objects = requested_user.json_dump())
     else:
-        return "Error: Permision Denied"
+        return msg_tools.response_fail(code = 401, objects = {'error': 'permission denied'})
 
 
 
