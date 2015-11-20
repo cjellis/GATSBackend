@@ -5,6 +5,9 @@ from bson import json_util, ObjectId
 from flask.ext.mail import Message
 
 class User():
+   
+    DEFAULT_TTL = 500
+
     def __init__(self, firstname, lastname, email, 
                  password, year, major, token = None,
                  tokenTTL = 50, is_auth = False, 
@@ -50,7 +53,6 @@ class User():
             'dimensions': self.dimensions
         }
         return json_dict
-        
     
     def is_authorized(self):
         return self.is_auth
@@ -71,6 +73,24 @@ class User():
             {'_id': self.o_id},
             {'$set': {'tokenTTL': (self.tokenTTL - 1)}})        
     
+    #updates token ttl and produces a new token if this one expires
+    def update_token(self):
+        if self.tokenTTL is 0:
+            self.token = User.gen_token()
+            user_collection.result = user_collection.update_one(
+                {'_id': ObjectId(o_id)},
+                {
+                    '$set': {'token': self.token},
+                    '$set': {'tokenTTL': DEFAULT_TTL} #increase as nesseceary
+                })
+        else:
+            self.update_ttl()
+            
+    #authorzes requests based on role
+    def auth_request(self, role = None):
+        return 'admin' in user.roles or role in user.roles
+    
+    
     @staticmethod
     def gen_token():
         return str(uuid.uuid1())
@@ -84,16 +104,12 @@ class User():
     def authorize(o_id, token):
         tmp_user = User.get_user_from_db(o_id = o_id)
         tmp_user_token = User.gen_hash(tmp_user.token)
-        print tmp_user.email
-        print tmp_user.token
-        print tmp_user_token
-        print "Token: " + token
         if tmp_user_token == token:
             user_collection.result = user_collection.update_one(
                 {'_id': ObjectId(o_id)},
                 {
                     '$set': {'is_auth': True},
-                    '$set': {'tokenTTL': 500} #increase as nesseceary
+                    '$set': {'tokenTTL': DEFAULT_TTL} #increase as nesseceary
                 })
             return True
         else:
@@ -129,7 +145,7 @@ class User():
             mongo_user = user_collection.find_one({'token': token})
         else:
             mongo_user = user_collection.find_one({'email': email})
-        return User(mongo_user['firstname'],
+        user = User(mongo_user['firstname'],
                     mongo_user['lastname'],
                     mongo_user['email'],
                     mongo_user['password'],
@@ -143,3 +159,6 @@ class User():
                     mongo_user['skills'],
                     mongo_user['dimensions'],
                     mongo_user['_id'])
+        #will add back in later
+        #user.update_token()
+        return user

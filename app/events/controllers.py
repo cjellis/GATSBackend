@@ -2,7 +2,7 @@ from app.database.db_connection import event_collection, skill_collection
 import json
 from flask import Blueprint, request, jsonify
 from cerberus import Validator
-import datetime
+import datetime, app
 
 events = Blueprint('events', __name__, url_prefix='/events')
 
@@ -149,9 +149,11 @@ schema = {
 schemaValidator = Validator(schema)
 
 
-@events.route('/addEvent', methods=['POST'])
-def add_event():
+@events.route('/addEvent/<auth_token>', methods=['POST'])
+def add_event(auth_token = None):
     data = json.loads(request.data)
+    if not user.auth_request('faculty') and not app.app.config['TESTING']:
+        return "ERROR: You do not have permission to create an event"
     if schemaValidator.validate(data):
         mongo_id = event_collection.insert_one(data).inserted_id
         if mongo_id:

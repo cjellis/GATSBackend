@@ -56,7 +56,38 @@ def add_data():
         "dimensions": ["Social Consciousness & Interpersonal Commitment"]
     })
 
-
+    #...
+    user_collection.insert_one({
+            'firstname': 'John',
+            'lastname': 'Smith',
+            'email': 'smith.j@husky.neu.edu',
+            'password': 'passhash',
+            'token': 'randomtoken',
+            'tokenTTL': 1000,
+            'is_auth': True,
+            'events': [],
+            'roles': ['student'],
+            'year': 'Freshman',
+            'major': '',
+            'skills': [],
+            'dimensions': []
+        })
+    #...
+    user_collection.insert_one({
+            'firstname': 'Proffesor',
+            'lastname': 'Snape',
+            'email': 'snape@neu.edu',
+            'password': 'passhashw',
+            'token': 'randomtoken2',
+            'tokenTTL': 1000,
+            'is_auth': True,
+            'events': [],
+            'roles': ['faculty', 'admin'],
+            'year': '',
+            'major': '',
+            'skills': [],
+            'dimensions': []
+        })
 
 
 
