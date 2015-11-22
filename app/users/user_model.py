@@ -9,10 +9,10 @@ class User():
     DEFAULT_TTL = 500
 
     def __init__(self, firstname, lastname, email, 
-                 password, year, major, token = None,
-                 tokenTTL = 50, is_auth = False, 
-                 roles = None, events = [], skills = [],
-                 dimensions = [], o_id = None):
+                 password, year=None, major=None, token=None,
+                 tokenTTL=50, is_auth=False,
+                 roles=None, events=[], skills=[],
+                 dimensions=[], o_id=None):
         self.o_id = o_id
         self.f_name = firstname 
         self.l_name = lastname
@@ -34,7 +34,6 @@ class User():
         self.major = major
         self.skills = skills
         self.dimensions = dimensions
-            
         
     def json_dump(self):
         json_dict = {
@@ -86,9 +85,9 @@ class User():
         else:
             self.update_ttl()
             
-    #authorzes requests based on role
-    def auth_request(self, role = None):
-        return 'admin' in user.roles or role in user.roles
+    # authorizes requests based on role
+    def auth_request(self, role=None):
+        return 'admin' in self.roles or role in self.roles
     
     
     @staticmethod
@@ -138,10 +137,10 @@ class User():
             return email
     
     @staticmethod
-    def get_user_from_db(o_id = None, token = None, email = None):
-        if(o_id != None):
+    def get_user_from_db(o_id=None, token=None, email=None):
+        if o_id is not None:
             mongo_user = user_collection.find_one({'_id': ObjectId(o_id)})
-        elif token != None:
+        elif token is not None:
             mongo_user = user_collection.find_one({'token': token})
         else:
             mongo_user = user_collection.find_one({'email': email})

@@ -81,10 +81,12 @@ schema = {
     },
     'year': {
         'type': 'string',
+        'nullable': True,
         'allowed': ['Freshman', 'Sophomore', 'Middler', 'Junior', 'Senior']
     },
     'major': {
         'type': 'string',
+        'nullable': True,
         'maxlength': 50    
     },
     'skills': {
@@ -110,14 +112,17 @@ schemaValidator = MyValidator(schema)
 @users.route('/addUser', methods=['POST'])
 def add_user():
     data = json.loads(request.data)
-    user = None
     email = data['email']
     email = User.fix_email_bug(email)
     #comment back in to do testing on a single address
     #email = data['email']
 
-    user = User(data['firstname'], data['lastname'], email,
-                data['password'], data['year'], data['major'])
+    if 'year' in data and 'major' in data:
+        user = User(data['firstname'], data['lastname'], email,
+                    data['password'], data['year'], data['major'])
+    else:
+        user = User(data['firstname'], data['lastname'], email,
+                    data['password'])
         
     data = user.json_dump()
     if schemaValidator.validate(data):
@@ -139,7 +144,7 @@ def verify_user(o_id, token):
 def get_user(email, auth_token):
     requester = User.get_user_from_db(token = auth_token)
     requested_user = User.get_user_from_db(email = email)
-    if(requester.email == email or 'admin' in requester.roles):
+    if requester.email == email or 'admin' in requester.roles:
         return msg_tools.response_success(objects=requested_user.json_dump())
     else:
         return msg_tools.response_fail(code = 401, objects = {'error': 'permission denied'})

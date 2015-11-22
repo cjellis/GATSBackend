@@ -82,6 +82,17 @@ class AppTestCase(unittest.TestCase):
         assert len(obj["skills"]) is 1
 
     def test_add_event(self):
+        test_user = {
+                        "firstname": "John",
+                        "lastname": "Smith",
+                        "email": "smith.j@neu.edu",
+                        "password": "password"
+                    }
+        rv = self.app.post('/users/addUser',
+                       data=json.dumps(test_user),
+                       content_type='application/json')
+        token = json.loads(rv.data)['data']['user']['token']
+
         rv = self.app.post('/administrator/addDimension',
                            data=json.dumps(dict(name="TestDimension")),
                            content_type='application/json')
@@ -91,7 +102,7 @@ class AppTestCase(unittest.TestCase):
                                                 dimensions=['TestDimension'])),
                            content_type='application/json')
 
-        rv = self.app.post('/events/addEvent',
+        rv = self.app.post('/events/addEvent/{}'.format(token),
                            data=json.dumps({
     "title": "Northeastern University Growth Opportunities for Asian American Leaders (NUGOAL)",
     "format": "Training and development program",
@@ -135,7 +146,7 @@ class AppTestCase(unittest.TestCase):
         obj = json.loads(rv.data)
         assert len(obj["events"]) is 1
 
-        rv = self.app.post('/events/addEvent',
+        rv = self.app.post('/events/addEvent/{}'.format(token),
                            data=json.dumps({
     "title": "Northeastern University Growth Opportunities for Asian American Leaders (NUGOAL)",
     "format": "Training and development program",
