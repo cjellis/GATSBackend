@@ -92,16 +92,21 @@ schema = {
     'skills': {
         'type': 'list',
         'schema': {
-            'type': 'objectid',
-            'validator': validate_skill
-            
+            'type': 'dict',
+            'schema': {
+                'skill': {'type': 'string'},
+                'value': {'type': 'integer'}
+            }
         }
     },
     'dimensions': {
         'type': 'list',
         'schema': {
-            'type': 'objectid',
-            'validator': validate_dimension,
+            'type': 'dict',
+            'schema': {
+                'dimension': {'type': 'string'},
+                'value': {'type': 'integer'}
+            }
         }
     }
 }

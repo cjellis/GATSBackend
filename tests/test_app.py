@@ -91,6 +91,7 @@ class AppTestCase(unittest.TestCase):
         rv = self.app.post('/users/addUser',
                        data=json.dumps(test_user),
                        content_type='application/json')
+
         token = json.loads(rv.data)['data']['user']['token']
 
         rv = self.app.post('/administrator/addDimension',
@@ -232,3 +233,182 @@ class AppTestCase(unittest.TestCase):
         data = json.loads(rv.data)
         assert data['response']['code'] is 200
         assert data['data']['email'] == test_user['email']
+
+    def test_event_attendance(self):
+        test_user = {
+                        "firstname": "John",
+                        "lastname": "Smith",
+                        "email": "smith.j@neu.edu",
+                        "password": "password"
+                    }
+        rv = self.app.post('/users/addUser',
+                       data=json.dumps(test_user),
+                       content_type='application/json')
+        token = json.loads(rv.data)['data']['user']['token']
+
+        test_user = {
+            "firstname": "John",
+            "lastname": "Smith",
+            "email": "smith.j2@husky.neu.edu",
+            "password": "password",
+            "year": "Sophomore",
+            "major": "Psycology"
+        }
+
+        rv = self.app.post('/users/addUser',
+                                 data=json.dumps(test_user),
+                                 content_type='application/json')
+        token_student = json.loads(rv.data)['data']['user']['token']
+
+        rv = self.app.post('/administrator/addDimension',
+                           data=json.dumps(dict(name="TestDimension")),
+                           content_type='application/json')
+
+        rv = self.app.post('/administrator/addSkill',
+                           data=json.dumps(dict(name="TestSkill",
+                                                dimensions=['TestDimension'])),
+                           content_type='application/json')
+
+        rv = self.app.post('/events/addEvent/{}'.format(token),
+                           data=json.dumps({
+    "title": "Northeastern University Growth Opportunities for Asian American Leaders (NUGOAL)",
+    "format": "Training and development program",
+    "topics": ["Multicultural", "Leadership", "Community Engagement", "Exploring Identity"],
+    "description": "Northeastern University Growth and Opportunity for"
+                   " Asian American Leaders is a program specifically designed for first and second year "
+                   "Asian American students who are looking to increase and gain experiences to empower themselves as"
+                   " leaders at Northeastern University and beyond. A cohort of students will be chosen based on their "
+                   "potential as future leaders and need for leadership development. This seven week program will focus"
+                   " on the intersection of leadership and Asian American racial identity through discussions and"
+                   " projects. It will be facilitated by current Asian American student leaders and AAC staff. Apply by"
+                   " December 1, 2015.",
+    "begin": "12/1/2015",
+    "end": "3/1/2015",
+    "engagementLengthValue": 1,
+    "engagementLengthUnit": "Semester",
+    "recurrence": "Yearly",
+    "location": "Boston Campus",
+    "sponsoringDepartment": "Asian American Center",
+    "pointOfContact": {"name": "Kristine Din", "number": "6173735554", "email": "k.din@neu.edu"},
+    "outcomes": ["Students will be able to define leadership in relationship to their own racial identity.",
+                 "Students will be able to describe their leadership strengths.",
+                 "Students will be able to employ their leadership style and strengths in their daily lives.",
+                 "Students will be able to analyze leadership in the Asian American community.",
+                 "Students will be able to propose a meaningful intervention for building Asian American leadership"
+                 " capacity.",
+                 "Students will be able to assess the need for leadership development within the Asian American"
+                 " community at Northeastern."],
+    "skills": ["TestSkill"],
+    "engagementLevel": "Active",
+
+    "coopFriendly": True,
+    "academicStanding": ["First Year", "Second Year"],
+    "major": "Any",
+    "residentStatus": "both",
+    "otherRequirements": ["Identify as Asian American"]
+}), content_type='application/json')
+        assert "Success" in rv.data
+
+        rv = self.app.get('/events/getAllEvents')
+        obj = json.loads(rv.data)
+        event_id = obj["events"][0]["id"]
+
+        rv = self.app.post('/events/submitAttendance/{}/{}'.format(event_id, token_student))
+        assert "Success" in rv.data
+
+    def test_event_point_distribution(self):
+        rv = self.app.post('/administrator/addDimension',
+                           data=json.dumps(dict(name="TestDimension")),
+                           content_type='application/json')
+
+        rv = self.app.post('/administrator/addSkill',
+                           data=json.dumps(dict(name="TestSkill",
+                                                dimensions=['TestDimension'])),
+                           content_type='application/json')
+
+        test_user = {
+                "firstname": "John",
+                "lastname": "Smith",
+                "email": "smith.j@neu.edu",
+                "password": "password"
+        }
+        rv = self.app.post('/users/addUser',
+                       data=json.dumps(test_user),
+                       content_type='application/json')
+        token = json.loads(rv.data)['data']['user']['token']
+
+        rv = self.app.post('/events/addEvent/{}'.format(token),
+                           data=json.dumps({
+    "title": "Northeastern University Growth Opportunities for Asian American Leaders (NUGOAL)",
+    "format": "Training and development program",
+    "topics": ["Multicultural", "Leadership", "Community Engagement", "Exploring Identity"],
+    "description": "Northeastern University Growth and Opportunity for"
+                   " Asian American Leaders is a program specifically designed for first and second year "
+                   "Asian American students who are looking to increase and gain experiences to empower themselves as"
+                   " leaders at Northeastern University and beyond. A cohort of students will be chosen based on their "
+                   "potential as future leaders and need for leadership development. This seven week program will focus"
+                   " on the intersection of leadership and Asian American racial identity through discussions and"
+                   " projects. It will be facilitated by current Asian American student leaders and AAC staff. Apply by"
+                   " December 1, 2015.",
+    "begin": "12/1/2015",
+    "end": "3/1/2015",
+    "engagementLengthValue": 1,
+    "engagementLengthUnit": "Semester",
+    "recurrence": "Yearly",
+    "location": "Boston Campus",
+    "sponsoringDepartment": "Asian American Center",
+    "pointOfContact": {"name": "Kristine Din", "number": "6173735554", "email": "k.din@neu.edu"},
+    "outcomes": ["Students will be able to define leadership in relationship to their own racial identity.",
+                 "Students will be able to describe their leadership strengths.",
+                 "Students will be able to employ their leadership style and strengths in their daily lives.",
+                 "Students will be able to analyze leadership in the Asian American community.",
+                 "Students will be able to propose a meaningful intervention for building Asian American leadership"
+                 " capacity.",
+                 "Students will be able to assess the need for leadership development within the Asian American"
+                 " community at Northeastern."],
+    "skills": ["TestSkill"],
+    "engagementLevel": "Active",
+
+    "coopFriendly": True,
+    "academicStanding": ["First Year", "Second Year"],
+    "major": "Any",
+    "residentStatus": "both",
+    "otherRequirements": ["Identify as Asian American"]
+}), content_type='application/json')
+        assert "Success" in rv.data
+
+        rv = self.app.get('/events/getAllEvents')
+        obj = json.loads(rv.data)
+        event_id = obj["events"][0]["id"]
+
+
+        test_user = {
+            "firstname": "John",
+            "lastname": "Smith",
+            "email": "smith.j2@husky.neu.edu",
+            "password": "password",
+            "year": "Sophomore",
+            "major": "Psycology"
+        }
+
+        rv = self.app.post('/users/addUser',
+                                 data=json.dumps(test_user),
+                                 content_type='application/json')
+        resp = json.loads(rv.data)
+        token_student = json.loads(rv.data)['data']['user']['token']
+
+        rv = self.app.post('/events/submitAttendance/{}/{}'.format(event_id, token_student))
+        assert "Success" in rv.data
+
+        rv = self.app.post('/events/distributePoints/{}/{}'.format(event_id, token))
+        assert "Success" in rv.data
+
+        url = '/users/getUser/em/{0}/{1}'.format(test_user['email'],
+                                            resp['data']['user']['token'])
+        rv = self.app.get(url, data=json.dumps(test_user), content_type='application/json')
+        data = json.loads(rv.data)
+        dim = data['data']['dimensions']
+        assert len(dim) == 1
+        d = dim[0]
+        assert d['dimension'] == 'TestDimension'
+        assert d['value'] == 4

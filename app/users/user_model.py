@@ -1,5 +1,5 @@
 import os, uuid, hashlib, base64, app
-from app.database.db_connection import user_collection
+from app.database.db_connection import user_collection, skill_collection, dimension_collection
 import json, uuid, binascii
 from bson import json_util, ObjectId
 from flask.ext.mail import Message
@@ -32,8 +32,36 @@ class User():
         self.events = events
         self.year = year
         self.major = major
-        self.skills = skills
-        self.dimensions = dimensions
+        if len(skills) == 0:
+            self.skills = User.set_skills()
+        else:
+            self.skills = skills
+        if len(dimensions) == 0:
+            self.dimensions = User.set_dimensions()
+        else:
+            self.dimensions = dimensions
+
+    @staticmethod
+    def set_skills():
+        skills = list(skill_collection.find({}))
+        skill_to_points = []
+        for skill in skills:
+            skill_dict = {}
+            skill_dict['skill'] = skill['name']
+            skill_dict['value'] = 0
+            skill_to_points.append(skill_dict)
+        return skill_to_points
+
+    @staticmethod
+    def set_dimensions():
+        dimensions = list(dimension_collection.find({}))
+        dimension_to_points = []
+        for dimension in dimensions:
+            dimension_dict = {}
+            dimension_dict['dimension'] = dimension['name']
+            dimension_dict['value'] = 0
+            dimension_to_points.append(dimension_dict)
+        return dimension_to_points
         
     def json_dump(self):
         json_dict = {
@@ -72,7 +100,7 @@ class User():
             {'_id': self.o_id},
             {'$set': {'tokenTTL': (self.tokenTTL - 1)}})        
     
-    #updates token ttl and produces a new token if this one expires
+    # updates token ttl and produces a new token if this one expires
     def update_token(self):
         if self.tokenTTL is 0:
             self.token = User.gen_token()

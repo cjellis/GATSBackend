@@ -1,11 +1,36 @@
-from app.database.db_connection import event_collection, skill_collection
+from app.database.db_connection import event_collection, skill_collection, user_collection
 from app.users.user_model import User
 import json
 from flask import Blueprint, request, jsonify
 from cerberus import Validator
-import datetime, app
+import datetime
+import uuid
 
 events = Blueprint('events', __name__, url_prefix='/events')
+
+length_to_value_map = {
+    'Day': 1,
+    'Week': 2,
+    'Month': 3,
+    'Semester': 4,
+    'Year': 5
+}
+
+level_to_value_map = {
+    'Active': 1,
+    'Passive': 2,
+    'Generative': 3
+}
+
+
+# validator for unique type
+def validate_unique(field, value, error, db, search):
+    if db.find_one({search: value}):
+        error(field, "value '%s' is not unique" % value)
+
+
+def validate_id(field, value, error):
+    validate_unique(field, value, error, event_collection, 'id')
 
 
 def validate_skills_exist(field, value, error):
@@ -134,7 +159,12 @@ schema = {
     },
     'attendance': {
         'type': 'list',
-        'schema': {'type': 'string'} #user email?
+        'schema': {'type': 'string'}  # user email?
+    },
+    'id': {
+        'type': 'string',
+        'required': True,
+        'validator': validate_id
     }
     # 'owner': {
     #         'type': 'string',
@@ -155,8 +185,10 @@ schemaValidator = Validator(schema)
 
 
 @events.route('/addEvent/<auth_token>', methods=['POST'])
-def add_event(auth_token=None):
+def add_event(auth_token):
     data = json.loads(request.data)
+    data['id'] = str(uuid.uuid4())
+    data['attendance'] = []
     user = User.get_user_from_db(token=auth_token)
     if not user.auth_request('faculty'):
         return "ERROR: You do not have permission to create an event"
@@ -166,6 +198,50 @@ def add_event(auth_token=None):
             return "Success"
         return "ERROR: Could not create event. Please try again"
     return jsonify(schemaValidator.errors)
+
+
+@events.route('/submitAttendance/<event_id>/<auth_token>', methods=['POST'])
+def submit_attendance(event_id, auth_token):
+    user = User.get_user_from_db(token=auth_token)
+    event = event_collection.find_one({"id": event_id}, {"_id": 0})
+    attendance = event['attendance']
+    attendance.append(user.email)
+    count = event_collection.update_one({"id": event_id}, {"$set": {"attendance": attendance}}).modified_count
+    if count is not 0:
+        return "Success"
+    return "ERROR: Could not add attendance. Please try again"
+
+
+@events.route('/distributePoints/<event_id>/<auth_token>', methods=['POST'])
+def distribute_points(event_id, auth_token):
+    user = User.get_user_from_db(token=auth_token)
+    if not user.auth_request('faculty'):
+        return "ERROR: You do not have permission to create an event"
+    event = event_collection.find_one({"id": event_id}, {"_id": 0})
+    attendance = event['attendance']
+    event_level = event['engagementLevel']
+    level_value = level_to_value_map.get(event_level)
+    event_length = event['engagementLengthUnit']
+    length_value = length_to_value_map.get(event_length)
+    event_length_value = event['engagementLengthValue']
+    points_per_skill = length_value * event_length_value * level_value
+    skills = event['skills']
+    for email in attendance:
+        user = User.get_user_from_db(email=email)
+        for skill in skills:
+            for user_skill in user.skills:
+                if user_skill['skill'] == skill:
+                    user_skill['value'] += points_per_skill
+                    skill_dimensions = list(skill_collection.find_one({"name": skill})['dimensions'])
+                    for dimension in skill_dimensions:
+                        for user_dimension in user.dimensions:
+                            if user_dimension['dimension'] == dimension:
+                                user_dimension['value'] += points_per_skill
+                                break
+            break
+        user_collection.update_one({"email": email}, {"$set": {'skills': user.skills, 'dimensions': user.dimensions}}).modified_count
+
+    return "Success"
 
 
 @events.route('/getAllEvents', methods=['GET'])
