@@ -235,11 +235,11 @@ class AppTestCase(unittest.TestCase):
         assert data['data']['email'] == test_user['email']
 
         other_test_user = {
-                        "firstname": "John",
-                        "lastname": "Smith",
-                        "email": "smith.j@neu.edu",
-                        "password": "password"
-                    }
+            "firstname": "John",
+            "lastname": "Smith",
+            "email": "smith.j@neu.edu",
+            "password": "password"
+        }
         rv = self.app.post('/users/addUser',
                        data=json.dumps(other_test_user),
                        content_type='application/json')

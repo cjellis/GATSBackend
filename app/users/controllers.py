@@ -141,7 +141,7 @@ def add_user():
 @users.route('/verifyUser/<o_id>/<token>', methods=['GET'])
 def verify_user(o_id, token):
     if User.authorize(o_id, token):
-        return "Successefuly authorized you!"
+        return "Successfully authorized you!"
     else:
         return "We could not authorize you. Please try again"
 
