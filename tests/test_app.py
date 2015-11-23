@@ -234,6 +234,23 @@ class AppTestCase(unittest.TestCase):
         assert data['response']['code'] is 200
         assert data['data']['email'] == test_user['email']
 
+        other_test_user = {
+                        "firstname": "John",
+                        "lastname": "Smith",
+                        "email": "smith.j@neu.edu",
+                        "password": "password"
+                    }
+        rv = self.app.post('/users/addUser',
+                       data=json.dumps(other_test_user),
+                       content_type='application/json')
+        token = json.loads(rv.data)['data']['user']['token']
+
+        url = '/users/getUser/em/{0}/{1}'.format(test_user['email'],
+                                            token)
+        rv = self.app.get(url, data=json.dumps(test_user), content_type='application/json')
+        data = json.loads(rv.data)
+        assert 'permission denied' in data['data']['error']
+
     def test_event_attendance(self):
         test_user = {
                         "firstname": "John",
