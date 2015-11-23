@@ -206,7 +206,9 @@ def submit_attendance(event_id, auth_token):
         return "ERROR: Event is already closed"
     attendance = event['attendance']
     attendance.append(user.email)
+    user.events.append(event_id)
     count = event_collection.update_one({"id": event_id}, {"$set": {"attendance": attendance}}).modified_count
+    count = user_collection.update_one({"email": user.email}, {"$set": {"events": user.events}}).modified_count
     if count is not 0:
         return "Success"
     return "ERROR: Could not add attendance. Please try again"
@@ -243,7 +245,9 @@ def distribute_points(event_id, auth_token):
                                 user_dimension['value'] += points_per_skill
                                 break
             break
-        user_collection.update_one({"email": email}, {"$set": {'skills': user.skills, 'dimensions': user.dimensions}})
+        user_collection.update_one({"email": email},
+                                   {"$set":
+                                    {'skills': user.skills, 'dimensions': user.dimensions}})
     event_collection.update_one({"id": event['id']}, {"$set": {'state': 'completed'}})
 
     return "Success"
