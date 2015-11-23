@@ -1,10 +1,10 @@
-import os, uuid, hashlib, base64, app
+import uuid, hashlib, base64, app
 from app.database.db_connection import user_collection, skill_collection, dimension_collection
-import json, uuid, binascii
-from bson import json_util, ObjectId
+from bson import ObjectId
 from flask.ext.mail import Message
 
-class User():
+
+class User:
    
     DEFAULT_TTL = 500
 
@@ -23,7 +23,7 @@ class User():
         else:
             token = token
         self.token = token
-        self.tokenTTL = tokenTTL #this number is increased when account is authorized
+        self.tokenTTL = tokenTTL  # this number is increased when account is authorized
         self.is_auth = is_auth
         if roles is None:
             self.roles = User.get_role(email)
@@ -86,12 +86,12 @@ class User():
     
     def send_verify(self, o_id):
         hash_token = User.gen_hash(self.token)
-        msg_body ="http://{0}:{1}/users/verifyUser/{2}/{3}".format(app.app.config['HOST'], 
-                                                                    app.app.config['PORT'],
-                                                                       o_id, hash_token)
+        msg_body = "http://{0}:{1}/users/verifyUser/{2}/{3}".format(app.app.config['HOST'],
+                                                                   app.app.config['PORT'],
+                                                                   o_id, hash_token)
         msg = Message("Verfy with GATS",
-              sender=('GATS', app.app.config['MAIL_USERNAME']),
-              recipients=[self.email])
+                      sender=('GATS', app.app.config['MAIL_USERNAME']),
+                      recipients=[self.email])
         msg.body = msg_body
         app.mail.send(msg)
     
@@ -107,8 +107,7 @@ class User():
             user_collection.result = user_collection.update_one(
                 {'_id': ObjectId(o_id)},
                 {
-                    '$set': {'token': self.token},
-                    '$set': {'tokenTTL': DEFAULT_TTL} #increase as nesseceary
+                    '$set': {'token': self.token, 'tokenTTL': DEFAULT_TTL}  # increase as necessary
                 })
         else:
             self.update_ttl()
@@ -124,7 +123,7 @@ class User():
     
     @staticmethod
     def gen_hash(token):
-        #creates a url safe hash token
+        # creates a url safe hash token
         return base64.urlsafe_b64encode(hashlib.md5(token).digest())[:11]
     
     @staticmethod
@@ -135,8 +134,7 @@ class User():
             user_collection.result = user_collection.update_one(
                 {'_id': ObjectId(o_id)},
                 {
-                    '$set': {'is_auth': True},
-                    '$set': {'tokenTTL': DEFAULT_TTL} #increase as nesseceary
+                    '$set': {'is_auth': True, 'tokenTTL': DEFAULT_TTL}  # increase as nesseceary
                 })
             return True
         else:
@@ -179,13 +177,13 @@ class User():
                     mongo_user['year'],
                     mongo_user['major'],
                     mongo_user['token'],
-                    mongo_user['tokenTTL'], # update time to live
+                    mongo_user['tokenTTL'],  # update time to live
                     mongo_user['is_auth'],
-                    mongo_user['roles'], #json.loads(mongo_user['roles']),
-                    mongo_user['events'], #json.loads(mongo_user['events']),
+                    mongo_user['roles'],  # json.loads(mongo_user['roles']),
+                    mongo_user['events'],  # json.loads(mongo_user['events']),
                     mongo_user['skills'],
                     mongo_user['dimensions'],
                     mongo_user['_id'])
-        #will add back in later
-        #user.update_token()
+        # will add back in later
+        # user.update_token()
         return user

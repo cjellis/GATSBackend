@@ -2,9 +2,8 @@ from app.database.db_connection import user_collection as usersdb
 from app.database.db_connection import event_collection as events
 from app.database.db_connection import dimension_collection as dimensions
 from app.database.db_connection import skill_collection as skills
-import json, app
-from bson import json_util
-from flask import Blueprint, request, jsonify
+import json
+from flask import Blueprint, request
 from app.users.user_model import User
 from app.utils.validators import MyValidator
 from app.utils.msg_tools import ResponseTools as msg_tools
@@ -12,9 +11,9 @@ from app.utils.msg_tools import ResponseTools as msg_tools
 users = Blueprint('users', __name__, url_prefix='/users')
 
 
-def validate_objectid(field, value, error, db):
-    if not re.match('[a-f0-9]{24}', value) and db.find_one({'_id': ObjectId(value)}):
-        error(field, ERROR_BAD_TYPE.format('ObjectId'))
+# def validate_objectid(field, value, error, db):
+#    if not re.match('[a-f0-9]{24}', value) and db.find_one({'_id': ObjectId(value)}):
+#        error(field, ERROR_BAD_TYPE.format('ObjectId'))
 
 
 # validator for unique type

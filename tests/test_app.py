@@ -397,6 +397,26 @@ class AppTestCase(unittest.TestCase):
         resp = json.loads(rv.data)
         token_student = json.loads(rv.data)['data']['user']['token']
 
+        other_test_user = {
+                "firstname": "Jim",
+                "lastname": "Doe",
+                "email": "doe.j@neu.edu",
+                "password": "password"
+        }
+        rv = self.app.post('/users/addUser',
+                       data=json.dumps(other_test_user),
+                       content_type='application/json')
+        other_token = json.loads(rv.data)['data']['user']['token']
+
+        rv = self.app.post('/events/overEvent/{}/{}'.format(event_id, other_token))
+        assert "ERROR: Not the owner of this event" in rv.data
+
+        rv = self.app.post('/events/closeEvent/{}/{}'.format(event_id, other_token))
+        assert "ERROR: Not the owner of this event" in rv.data
+
+        rv = self.app.post('/events/closeEvent/{}/{}'.format(event_id, token))
+        assert "ERROR: Event not over" in rv.data
+
         rv = self.app.post('/events/overEvent/{}/{}'.format(event_id, token))
         assert "Success" in rv.data
 
@@ -405,6 +425,18 @@ class AppTestCase(unittest.TestCase):
 
         rv = self.app.post('/events/closeEvent/{}/{}'.format(event_id, token))
         assert "Success" in rv.data
+
+        rv = self.app.post('/events/overEvent/{}/{}'.format(event_id, token))
+        assert "ERROR: Event not open, cannot be set to over" in rv.data
+
+        rv = self.app.post('/events/distributePoints/{}/{}'.format(event_id, token_student))
+        assert "ERROR: You do not have permission to alter an event" in rv.data
+
+        rv = self.app.post('/events/overEvent/{}/{}'.format(event_id, token_student))
+        assert "ERROR: You do not have permission to set an event to over" in rv.data
+
+        rv = self.app.post('/events/closeEvent/{}/{}'.format(event_id, token_student))
+        assert "ERROR: You do not have permission to close an event" in rv.data
 
         rv = self.app.post('/events/distributePoints/{}/{}'.format(event_id, token))
         assert "Success" in rv.data

@@ -273,7 +273,7 @@ def close_event(event_id, auth_token):
 def over_event(event_id, auth_token):
     user = User.get_user_from_db(token=auth_token)
     if not user.auth_request('faculty'):
-        return "ERROR: You do not have permission to close an event"
+        return "ERROR: You do not have permission to set an event to over"
     event = event_collection.find_one({"id": event_id}, {"_id": 0})
     if event['owner'] != user.email:
         return "ERROR: Not the owner of this event"
