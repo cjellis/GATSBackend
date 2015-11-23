@@ -1,4 +1,3 @@
-import app
 from pymongo import MongoClient
 
 client = MongoClient("mongodb://admin:admin@ds049864.mongolab.com:49864/activitytracker")
