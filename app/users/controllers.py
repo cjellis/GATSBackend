@@ -11,11 +11,13 @@ from app.utils.msg_tools import ResponseTools as msg_tools
 
 users = Blueprint('users', __name__, url_prefix='/users')
 
+
 def validate_objectid(field, value, error, db):
     if not re.match('[a-f0-9]{24}', value) and db.find_one({'_id': ObjectId(value)}):
         error(field, ERROR_BAD_TYPE.format('ObjectId'))
 
-#validator for unique type
+
+# validator for unique type
 def validate_unique(field, value, error, db, search):
     if db.find_one({search: value}):
         error(field, "value '%s' is not unique" % value)
@@ -76,7 +78,7 @@ schema = {
     # 'role' is a list, and can only contain values from 'allowed'.
     'roles': {
         'type': 'list',
-        #admins can do anything, superusers can't edit student and faculty accounts at will
+        # admins can do anything, superusers can't edit student and faculty accounts at will
         'allowed': ['student', 'faculty', 'superuser', 'admin']
     },
     'year': {
@@ -119,8 +121,8 @@ def add_user():
     data = json.loads(request.data)
     email = data['email']
     email = User.fix_email_bug(email)
-    #comment back in to do testing on a single address
-    #email = data['email']
+    # comment back in to do testing on a single address
+    # email = data['email']
 
     if 'year' in data and 'major' in data:
         user = User(data['firstname'], data['lastname'], email,
@@ -133,8 +135,8 @@ def add_user():
     if schemaValidator.validate(data):
         o_id = usersdb.insert_one(data).inserted_id
         user.send_verify(o_id)
-        return msg_tools.response_success(objects = {'user': { 'user_oid': str(o_id), 'token': user.token}})
-    return msg_tools.response_fail(objects = schemaValidator.errors)
+        return msg_tools.response_success(objects={'user': {'user_oid': str(o_id), 'token': user.token}})
+    return msg_tools.response_fail(objects=schemaValidator.errors)
 
 
 @users.route('/verifyUser/<o_id>/<token>', methods=['GET'])
@@ -144,15 +146,13 @@ def verify_user(o_id, token):
     else:
         return "We could not authorize you. Please try again"
 
-#@users.route('/getUser/id/<id>/<auth_token>', methods=['GET'])    #add later if needed
+
+# @users.route('/getUser/id/<id>/<auth_token>', methods=['GET'])    #add later if needed
 @users.route('/getUser/em/<email>/<auth_token>', methods=['GET'])
 def get_user(email, auth_token):
-    requester = User.get_user_from_db(token = auth_token)
-    requested_user = User.get_user_from_db(email = email)
+    requester = User.get_user_from_db(token=auth_token)
+    requested_user = User.get_user_from_db(email=email)
     if requester.email == email or 'admin' in requester.roles:
         return msg_tools.response_success(objects=requested_user.json_dump())
     else:
-        return msg_tools.response_fail(code = 401, objects = {'error': 'permission denied'})
-
-
-
+        return msg_tools.response_fail(code=401, objects={'error': 'permission denied'})

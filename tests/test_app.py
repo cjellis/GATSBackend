@@ -397,7 +397,13 @@ class AppTestCase(unittest.TestCase):
         resp = json.loads(rv.data)
         token_student = json.loads(rv.data)['data']['user']['token']
 
+        rv = self.app.post('/events/overEvent/{}/{}'.format(event_id, token))
+        assert "Success" in rv.data
+
         rv = self.app.post('/events/submitAttendance/{}/{}'.format(event_id, token_student))
+        assert "Success" in rv.data
+
+        rv = self.app.post('/events/closeEvent/{}/{}'.format(event_id, token))
         assert "Success" in rv.data
 
         rv = self.app.post('/events/distributePoints/{}/{}'.format(event_id, token))
