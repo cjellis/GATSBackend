@@ -1,4 +1,5 @@
 blinker==1.4
+bson==0.4.1
 Flask==0.10.1
 Flask-Mail==0.9.1
 Flask-OAuth==0.12
