@@ -171,6 +171,10 @@ schema = {
         'allowed': ['open', 'over', 'closed', 'completed'],
         'required': True
     },
+    'checkAttendance': {
+        'type': 'boolean',
+        'required': True
+    },
     'owner': {
         'type': 'string',
         'required': True
@@ -205,15 +209,42 @@ def submit_attendance(event_id, auth_token):
     if event['state'] == 'closed' or event['state'] == 'completed':
         return "ERROR: Event is already closed"
     attendance = event['attendance']
-    attendance.append(user.email)
-    count = event_collection.update_one({"id": event_id}, {"$set": {"attendance": attendance}}).modified_count
-    if count is not 0:
-        return "Success"
-    return "ERROR: Could not add attendance. Please try again"
+    attendance.append({"firstName": user.f_name, "lastName": user.l_name, "email": user.email})
+    user.events.append(event_id)
+    event_collection.update_one({"id": event_id}, {"$set": {"attendance": attendance}})
+    user_collection.update_one({"email": user.email}, {"$set": {"events": user.events}})
+    return "Success"
 
 
-@events.route('/distributePoints/<event_id>/<auth_token>', methods=['POST'])
-def distribute_points(event_id, auth_token):
+@events.route('/changeAttendance/<event_id>/<auth_token>', methods=['POST'])
+def change_attendance(event_id, auth_token):
+    user = User.get_user_from_db(token=auth_token)
+    if not user.auth_request('faculty'):
+        return "ERROR: You do not have permission to alter an event"
+    event = event_collection.find_one({"id": event_id}, {"_id": 0})
+    if event['owner'] != user.email:
+        return "ERROR: Not the owner of this event"
+
+    event_collection.update_one({"id": event_id}, {"$set": {"checkAttendance": not event['checkAttendance']}})
+    return "Success"
+
+
+@events.route('/getAttendance/<event_id>/<auth_token>', methods=['GET'])
+def get_attendance(event_id, auth_token):
+    user = User.get_user_from_db(token=auth_token)
+    if not user.auth_request('faculty'):
+        return "ERROR: You do not have permission to alter an event"
+    event = event_collection.find_one({"id": event_id}, {"_id": 0})
+    if event['owner'] != user.email:
+        return "ERROR: Not the owner of this event"
+
+    attendance = event['attendance']
+
+    return jsonify({"attendees": attendance})
+
+
+@events.route('/verifyAttendance/<event_id>/<auth_token>', methods=['POST'])
+def verify_attendance(event_id, auth_token):
     user = User.get_user_from_db(token=auth_token)
     if not user.auth_request('faculty'):
         return "ERROR: You do not have permission to alter an event"
@@ -222,7 +253,9 @@ def distribute_points(event_id, auth_token):
         return "ERROR: Not the owner of this event"
     if not event['state'] == 'closed':
         return "ERROR: Event not yet closed"
-    attendance = event['attendance']
+    if not event['checkAttendance']:
+        return "ERROR: attendance does not need to be verified"
+
     event_level = event['engagementLevel']
     level_value = level_to_value_map.get(event_level)
     event_length = event['engagementLengthUnit']
@@ -230,7 +263,10 @@ def distribute_points(event_id, auth_token):
     event_length_value = event['engagementLengthValue']
     points_per_skill = length_value * event_length_value * level_value
     skills = event['skills']
-    for email in attendance:
+
+    data = json.loads(request.data)
+    attendees = data['attendees']
+    for email in attendees:
         user = User.get_user_from_db(email=email)
         for skill in skills:
             for user_skill in user.skills:
@@ -243,7 +279,52 @@ def distribute_points(event_id, auth_token):
                                 user_dimension['value'] += points_per_skill
                                 break
             break
-        user_collection.update_one({"email": email}, {"$set": {'skills': user.skills, 'dimensions': user.dimensions}})
+        user_collection.update_one({"email": email},
+                                   {"$set":
+                                    {'skills': user.skills, 'dimensions': user.dimensions}})
+    event_collection.update_one({"id": event['id']}, {"$set": {'state': 'completed', 'attendance': attendees}})
+
+    return "Success"
+
+
+@events.route('/distributePoints/<event_id>/<auth_token>', methods=['POST'])
+def distribute_points(event_id, auth_token):
+    user = User.get_user_from_db(token=auth_token)
+    if not user.auth_request('faculty'):
+        return "ERROR: You do not have permission to alter an event"
+    event = event_collection.find_one({"id": event_id}, {"_id": 0})
+    if event['owner'] != user.email:
+        return "ERROR: Not the owner of this event"
+    if not event['state'] == 'closed':
+        return "ERROR: Event not yet closed"
+    if event['checkAttendance']:
+        return "ERROR: attendance needs to be verified"
+    attendance = event['attendance']
+    event_level = event['engagementLevel']
+    level_value = level_to_value_map.get(event_level)
+    event_length = event['engagementLengthUnit']
+    length_value = length_to_value_map.get(event_length)
+    event_length_value = event['engagementLengthValue']
+    points_per_skill = length_value * event_length_value * level_value
+    skills = event['skills']
+
+    for person in attendance:
+        email = person["email"]
+        user = User.get_user_from_db(email=email)
+        for skill in skills:
+            for user_skill in user.skills:
+                if user_skill['skill'] == skill:
+                    user_skill['value'] += points_per_skill
+                    skill_dimensions = list(skill_collection.find_one({"name": skill})['dimensions'])
+                    for dimension in skill_dimensions:
+                        for user_dimension in user.dimensions:
+                            if user_dimension['dimension'] == dimension:
+                                user_dimension['value'] += points_per_skill
+                                break
+            break
+        user_collection.update_one({"email": email},
+                                   {"$set":
+                                    {'skills': user.skills, 'dimensions': user.dimensions}})
     event_collection.update_one({"id": event['id']}, {"$set": {'state': 'completed'}})
 
     return "Success"

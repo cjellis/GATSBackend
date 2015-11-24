@@ -1,4 +1,5 @@
 from app.database.db_connection import dimension_collection, skill_collection
+from app.users.user_model import User
 import json
 from cerberus import Validator
 from flask import Blueprint, request, jsonify
@@ -49,8 +50,11 @@ dimension_schema = {
 dimension_schema_validator = Validator(dimension_schema)
 
 
-@admin.route('/addSkill', methods=['POST'])
-def add_skill():
+@admin.route('/addSkill/<auth_token>', methods=['POST'])
+def add_skill(auth_token):
+    user = User.get_user_from_db(token=auth_token)
+    if not user.auth_request('administrator'):
+        return "ERROR: You do not have permission to create a skill"
     data = json.loads(request.data)
     if skill_schema_validator.validate(data):
         mongo_id = skill_collection.insert_one(data).inserted_id
@@ -60,8 +64,11 @@ def add_skill():
     return jsonify(skill_schema_validator.errors)
 
 
-@admin.route('/addDimension', methods=['POST'])
-def add_dimension():
+@admin.route('/addDimension/<auth_token>', methods=['POST'])
+def add_dimension(auth_token):
+    user = User.get_user_from_db(token=auth_token)
+    if not user.auth_request('administrator'):
+        return "ERROR: You do not have permission to create a dimension"
     data = json.loads(request.data)
     if dimension_schema_validator.validate(data):
         mongo_id = dimension_collection.insert_one(data).inserted_id
