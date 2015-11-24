@@ -20,44 +20,60 @@ class AppTestCase(unittest.TestCase):
         dimension_collection.remove({})
         user_collection.remove({})
 
+        user_collection.insert_one({
+            'firstname': 'Admin',
+            'lastname': 'Admin',
+            'email': 'admin@neu.edu',
+            'password': 'P@$$w0rD',
+            'token': 'ADMIN_TOKEN',
+            'tokenTTL': 1000,
+            'is_auth': True,
+            'events': [],
+            'roles': ['administrator', 'faculty', 'superuser'],
+            'year': None,
+            'major': None,
+            'skills': [],
+            'dimensions': []
+        })
+
         self.app = app.app.test_client()
 
     def test_add_dimension(self):
-        rv = self.app.post('/administrator/addDimension',
+        rv = self.app.post('/administrator/addDimension/ADMIN_TOKEN',
                            data=json.dumps(dict(name="TestDimension")),
                            content_type='application/json')
         assert "Success" in rv.data
 
-        rv = self.app.post('/administrator/addDimension',
+        rv = self.app.post('/administrator/addDimension/ADMIN_TOKEN',
                            data=json.dumps(dict(name="TestDimension")),
                            content_type='application/json')
         assert "Dimension already exists with given name" in rv.data
 
     def test_add_skill(self):
-        rv = self.app.post('/administrator/addDimension',
+        rv = self.app.post('/administrator/addDimension/ADMIN_TOKEN',
                            data=json.dumps(dict(name="TestDimension")),
                            content_type='application/json')
 
-        rv = self.app.post('/administrator/addSkill',
+        rv = self.app.post('/administrator/addSkill/ADMIN_TOKEN',
                            data=json.dumps(dict(name="TestSkill",
                                                 dimensions=['TestDimension'])),
                            content_type='application/json')
         assert "Success" in rv.data
 
-        rv = self.app.post('/administrator/addSkill',
+        rv = self.app.post('/administrator/addSkill/ADMIN_TOKEN',
                            data=json.dumps(dict(name="TestSkill",
                                                 dimensions=['TestDimension'])),
                            content_type='application/json')
         assert "Skill already exists with given name" in rv.data
 
-        rv = self.app.post('/administrator/addSkill',
+        rv = self.app.post('/administrator/addSkill/ADMIN_TOKEN',
                            data=json.dumps(dict(name="TestOtherSkill",
                                                 dimensions=['FakeTestDimension'])),
                            content_type='application/json')
         assert "Dimension does not exist" in rv.data
 
     def test_get_dimension(self):
-        rv = self.app.post('/administrator/addDimension',
+        rv = self.app.post('/administrator/addDimension/ADMIN_TOKEN',
                            data=json.dumps(dict(name="TestDimension")),
                            content_type='application/json')
 
@@ -67,11 +83,11 @@ class AppTestCase(unittest.TestCase):
         assert len(obj["dimensions"]) is 1
 
     def test_get_skills(self):
-        rv = self.app.post('/administrator/addDimension',
+        rv = self.app.post('/administrator/addDimension/ADMIN_TOKEN',
                            data=json.dumps(dict(name="TestDimension")),
                            content_type='application/json')
 
-        rv = self.app.post('/administrator/addSkill',
+        rv = self.app.post('/administrator/addSkill/ADMIN_TOKEN',
                            data=json.dumps(dict(name="TestSkill",
                                                 dimensions=['TestDimension'])),
                            content_type='application/json')
@@ -94,11 +110,11 @@ class AppTestCase(unittest.TestCase):
 
         token = json.loads(rv.data)['data']['user']['token']
 
-        rv = self.app.post('/administrator/addDimension',
+        rv = self.app.post('/administrator/addDimension/ADMIN_TOKEN',
                            data=json.dumps(dict(name="TestDimension")),
                            content_type='application/json')
 
-        rv = self.app.post('/administrator/addSkill',
+        rv = self.app.post('/administrator/addSkill/ADMIN_TOKEN',
                            data=json.dumps(dict(name="TestSkill",
                                                 dimensions=['TestDimension'])),
                            content_type='application/json')
@@ -139,7 +155,8 @@ class AppTestCase(unittest.TestCase):
     "academicStanding": ["First Year", "Second Year"],
     "major": "Any",
     "residentStatus": "both",
-    "otherRequirements": ["Identify as Asian American"]
+    "otherRequirements": ["Identify as Asian American"],
+    "checkAttendance": False
 }), content_type='application/json')
         assert "Success" in rv.data
 
@@ -183,7 +200,8 @@ class AppTestCase(unittest.TestCase):
     "academicStanding": ["First Year", "Second Year"],
     "major": "Any",
     "residentStatus": "both",
-    "otherRequirements": ["Identify as Asian American"]
+    "otherRequirements": ["Identify as Asian American"],
+    "checkAttendance": False
 }), content_type='application/json')
         assert "Date not in correct format" in rv.data
         assert "Skill does not exist" in rv.data
@@ -277,14 +295,16 @@ class AppTestCase(unittest.TestCase):
                                  content_type='application/json')
         token_student = json.loads(rv.data)['data']['user']['token']
 
-        rv = self.app.post('/administrator/addDimension',
+        rv = self.app.post('/administrator/addDimension/ADMIN_TOKEN',
                            data=json.dumps(dict(name="TestDimension")),
                            content_type='application/json')
+        assert "Success" in rv.data
 
-        rv = self.app.post('/administrator/addSkill',
+        rv = self.app.post('/administrator/addSkill/ADMIN_TOKEN',
                            data=json.dumps(dict(name="TestSkill",
                                                 dimensions=['TestDimension'])),
                            content_type='application/json')
+        assert "Success" in rv.data
 
         rv = self.app.post('/events/addEvent/{}'.format(token),
                            data=json.dumps({
@@ -322,7 +342,8 @@ class AppTestCase(unittest.TestCase):
     "academicStanding": ["First Year", "Second Year"],
     "major": "Any",
     "residentStatus": "both",
-    "otherRequirements": ["Identify as Asian American"]
+    "otherRequirements": ["Identify as Asian American"],
+    "checkAttendance": False
 }), content_type='application/json')
         assert "Success" in rv.data
 
@@ -334,14 +355,16 @@ class AppTestCase(unittest.TestCase):
         assert "Success" in rv.data
 
     def test_event_point_distribution(self):
-        rv = self.app.post('/administrator/addDimension',
+        rv = self.app.post('/administrator/addDimension/ADMIN_TOKEN',
                            data=json.dumps(dict(name="TestDimension")),
                            content_type='application/json')
+        assert "Success" in rv.data
 
-        rv = self.app.post('/administrator/addSkill',
+        rv = self.app.post('/administrator/addSkill/ADMIN_TOKEN',
                            data=json.dumps(dict(name="TestSkill",
                                                 dimensions=['TestDimension'])),
                            content_type='application/json')
+        assert "Success" in rv.data
 
         test_user = {
                 "firstname": "John",
@@ -390,7 +413,8 @@ class AppTestCase(unittest.TestCase):
     "academicStanding": ["First Year", "Second Year"],
     "major": "Any",
     "residentStatus": "both",
-    "otherRequirements": ["Identify as Asian American"]
+    "otherRequirements": ["Identify as Asian American"],
+    "checkAttendance": False
 }), content_type='application/json')
         assert "Success" in rv.data
 
