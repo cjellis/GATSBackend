@@ -57,6 +57,22 @@ def add_data():
     })
 
     #...
+
+    user_collection.insert_one({
+            'firstname': 'Admin',
+            'lastname': 'Admin',
+            'email': 'admin@neu.edu',
+            'password': 'P@$$w0rD',
+            'token': 'ADMIN_TOKEN',
+            'tokenTTL': 1000,
+            'is_auth': True,
+            'events': [],
+            'roles': ['administrator', 'faculty', 'superuser'],
+            'year': None,
+            'major': None,
+            'skills': [],
+            'dimensions': []
+        })
     # user_collection.insert_one({
     #         'firstname': 'John',
     #         'lastname': 'Smith',
