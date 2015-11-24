@@ -216,6 +216,19 @@ def submit_attendance(event_id, auth_token):
     return "Success"
 
 
+@events.route('/changeAttendance/<event_id>/<auth_token>', methods=['POST'])
+def change_attendance(event_id, auth_token):
+    user = User.get_user_from_db(token=auth_token)
+    if not user.auth_request('faculty'):
+        return "ERROR: You do not have permission to alter an event"
+    event = event_collection.find_one({"id": event_id}, {"_id": 0})
+    if event['owner'] != user.email:
+        return "ERROR: Not the owner of this event"
+
+    event_collection.update_one({"id": event_id}, {"$set": {"checkAttendance": not event['checkAttendance']}})
+    return "Success"
+
+
 @events.route('/getAttendance/<event_id>/<auth_token>', methods=['GET'])
 def get_attendance(event_id, auth_token):
     user = User.get_user_from_db(token=auth_token)
