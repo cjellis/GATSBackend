@@ -38,7 +38,23 @@ class AdminTestCase(unittest.TestCase):
 
         self.app = app.app.test_client()
 
+        test_user = {
+                        "firstname": "John",
+                        "lastname": "Smith",
+                        "email": "smith.j@neu.edu",
+                        "password": "password"
+                    }
+        rv = self.app.post('/users/addUser',
+                       data=json.dumps(test_user),
+                       content_type='application/json')
+        self.token = json.loads(rv.data)['data']['user']['token']
+
     def test_add_dimension(self):
+        rv = self.app.post('/administrator/addDimension/{}'.format(self.token),
+                           data=json.dumps(dict(name="TestDimension")),
+                           content_type='application/json')
+        assert "ERROR: You do not have permission to create a dimension" in rv.data
+
         rv = self.app.post('/administrator/addDimension/ADMIN_TOKEN',
                            data=json.dumps(dict(name="TestDimension")),
                            content_type='application/json')
@@ -53,6 +69,11 @@ class AdminTestCase(unittest.TestCase):
         rv = self.app.post('/administrator/addDimension/ADMIN_TOKEN',
                            data=json.dumps(dict(name="TestDimension")),
                            content_type='application/json')
+
+        rv = self.app.post('/administrator/addSkill/{}'.format(self.token),
+                           data=json.dumps(dict(name="TestDimension")),
+                           content_type='application/json')
+        assert "ERROR: You do not have permission to create a skill" in rv.data
 
         rv = self.app.post('/administrator/addSkill/ADMIN_TOKEN',
                            data=json.dumps(dict(name="TestSkill",
