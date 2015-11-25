@@ -85,7 +85,7 @@ class User:
         return self.is_auth
     
     def send_verify(self, o_id):
-        hash_token = User.gen_hash(self.token)
+        hash_token = User.gen_token_hash(self.token)
         msg_body = "http://{0}:{1}/users/verifyUser/{2}/{3}".format(app.app.config['HOST'],
                                                                    app.app.config['PORT'],
                                                                    o_id, hash_token)
@@ -123,14 +123,20 @@ class User:
         return str(uuid.uuid1())
     
     @staticmethod
-    def gen_hash(token):
+    def gen_pw_hash(password):
+        #TODO make salt more unique
+        salt = app.app.config['SALT']
+        return hashlib.sha512(password).hexdigest()
+    
+    @staticmethod
+    def gen_token_hash(token):
         # creates a url safe hash token
         return base64.urlsafe_b64encode(hashlib.md5(token).digest())[:11]
     
     @staticmethod
     def authorize(o_id, token):
         tmp_user = User.get_user_from_db(o_id = o_id)
-        tmp_user_token = User.gen_hash(tmp_user.token)
+        tmp_user_token = User.gen_token_hash(tmp_user.token)
         if tmp_user_token == token:
             user_collection.result = user_collection.update_one(
                 {'_id': ObjectId(o_id)},
@@ -171,6 +177,9 @@ class User:
             mongo_user = user_collection.find_one({'token': token})
         else:
             mongo_user = user_collection.find_one({'email': email})
+            
+        if mongo_user is None:
+            return None
         user = User(mongo_user['firstname'],
                     mongo_user['lastname'],
                     mongo_user['email'],
@@ -188,3 +197,18 @@ class User:
         # will add back in later
         # user.update_token()
         return user
+    
+    # returns a user if they are authorized for a role
+    @staticmethod
+    def get_user_if_auth(role, o_id=None, token=None, email=None):
+        user = get_user_from_db(o_id, token, email)
+        if user is not None:
+            if user.auth_request(role):
+                return user
+        return None
+    
+    # returns weather a user is authorized for a role
+    @staticmethod
+    def get_user_is_auth(role, o_id=None, token=None, email=None):
+        return get_user_if_auth(role, o_id, token, email) is None
+        

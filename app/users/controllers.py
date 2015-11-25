@@ -11,10 +11,9 @@ from app.utils.msg_tools import ResponseTools as msg_tools
 users = Blueprint('users', __name__, url_prefix='/users')
 
 
- def validate_objectid(field, value, error, db):
+def validate_objectid(field, value, error, db):
     if not re.match('[a-f0-9]{24}', value) and db.find_one({'_id': ObjectId(value)}):
         error(field, ERROR_BAD_TYPE.format('ObjectId'))
-
 
 # validator for unique type
 def validate_unique(field, value, error, db, search):
@@ -127,8 +126,9 @@ def add_user():
         user = User(data['firstname'], data['lastname'], email,
                     data['password'], data['year'], data['major'])
     else:
+        password = User.gen_pw_hash(data['password'])
         user = User(data['firstname'], data['lastname'], email,
-                    data['password'])
+                    password)
         
     data = user.json_dump()
     if schemaValidator.validate(data):
