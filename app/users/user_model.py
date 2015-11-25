@@ -11,7 +11,7 @@ class User:
     def __init__(self, firstname, lastname, email, 
                  password, year=None, major=None, token=None,
                  tokenTTL=50, is_auth=False,
-                 roles=None, events=[], skills=[],
+                 roles=[], events=[], skills=[],
                  dimensions=[], o_id=None):
         self.o_id = o_id
         self.f_name = firstname 
@@ -93,7 +93,8 @@ class User:
                       sender=('GATS', app.app.config['MAIL_USERNAME']),
                       recipients=[self.email])
         msg.body = msg_body
-        app.mail.send(msg)
+        if not app.app.config['TESTING']:
+            app.mail.send(msg)
     
     def update_ttl(self):
         user_collection.result = user_collection.update_one(

@@ -11,9 +11,9 @@ from app.utils.msg_tools import ResponseTools as msg_tools
 users = Blueprint('users', __name__, url_prefix='/users')
 
 
-# def validate_objectid(field, value, error, db):
-#    if not re.match('[a-f0-9]{24}', value) and db.find_one({'_id': ObjectId(value)}):
-#        error(field, ERROR_BAD_TYPE.format('ObjectId'))
+ def validate_objectid(field, value, error, db):
+    if not re.match('[a-f0-9]{24}', value) and db.find_one({'_id': ObjectId(value)}):
+        error(field, ERROR_BAD_TYPE.format('ObjectId'))
 
 
 # validator for unique type
