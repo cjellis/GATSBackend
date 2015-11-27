@@ -157,7 +157,7 @@ schema = {
         'type': 'list',
         'schema': {'type': 'string'}
     },
-    'attendance': {
+    'attendance': { #change to attendants?
         'type': 'list',
         'schema': {'type': 'string'}  # user email?
     },

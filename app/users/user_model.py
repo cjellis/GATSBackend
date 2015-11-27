@@ -170,7 +170,7 @@ class User:
             return email
     
     @staticmethod
-    def get_user_from_db(o_id=None, token=None, email=None):
+    def get_user_from_db(o_id=None, token=None, email=None, is_post=False):
         if o_id is not None:
             mongo_user = user_collection.find_one({'_id': ObjectId(o_id)})
         elif token is not None:
@@ -195,12 +195,12 @@ class User:
                     mongo_user['dimensions'],
                     mongo_user['_id'])
         # will add back in later
-        # user.update_token()
+        if is_post user.update_token()
         return user
     
     # returns a user if they are authorized for a role
     @staticmethod
-    def get_user_if_auth(role, o_id=None, token=None, email=None):
+    def get_user_if_auth(role, o_id=None, token=None, email=None, is_post=False):
         user = get_user_from_db(o_id, token, email)
         if user is not None:
             if user.auth_request(role):
@@ -209,6 +209,6 @@ class User:
     
     # returns weather a user is authorized for a role
     @staticmethod
-    def get_user_is_auth(role, o_id=None, token=None, email=None):
+    def get_user_is_auth(role, o_id=None, token=None, email=None, is_post=False):
         return get_user_if_auth(role, o_id, token, email) is None
         

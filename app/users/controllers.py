@@ -134,7 +134,7 @@ def add_user():
     if schemaValidator.validate(data):
         o_id = usersdb.insert_one(data).inserted_id
         user.send_verify(o_id)
-        return msg_tools.response_success(objects={'user': {'user_oid': str(o_id), 'token': user.token}})
+        return msg_tools.response_success(objects={'user': {'user_oid': str(user.email), 'token': user.token}})
     return msg_tools.response_fail(objects=schemaValidator.errors)
 
 
