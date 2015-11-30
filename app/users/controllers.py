@@ -49,9 +49,7 @@ schema = {
         'validator': validate_email
     },
     'password': {
-        'type': 'string',
-        'minlength': 8,
-        'maxlength': 50
+        'type': 'string'
     },
     'token': {
         'type': 'string',

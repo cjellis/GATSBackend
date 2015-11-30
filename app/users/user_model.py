@@ -25,7 +25,7 @@ class User:
         self.token = token
         self.tokenTTL = tokenTTL  # this number is increased when account is authorized
         self.is_auth = is_auth
-        if roles is None:
+        if len(roles) == 0:
             self.roles = User.get_role(email)
         else:
             self.roles = roles
@@ -106,7 +106,7 @@ class User:
         if self.tokenTTL is 0:
             self.token = User.gen_token()
             user_collection.result = user_collection.update_one(
-                {'_id': ObjectId(o_id)},
+                {'_id': ObjectId(self.o_id)},
                 {
                     '$set': {'token': self.token, 'tokenTTL': DEFAULT_TTL}  # increase as necessary
                 })
@@ -195,13 +195,14 @@ class User:
                     mongo_user['dimensions'],
                     mongo_user['_id'])
         # will add back in later
-        if is_post user.update_token()
+        if is_post:
+            user.update_token()
         return user
     
     # returns a user if they are authorized for a role
     @staticmethod
     def get_user_if_auth(role, o_id=None, token=None, email=None, is_post=False):
-        user = get_user_from_db(o_id, token, email)
+        user = User.get_user_from_db(o_id, token, email)
         if user is not None:
             if user.auth_request(role):
                 return user
@@ -210,5 +211,4 @@ class User:
     # returns weather a user is authorized for a role
     @staticmethod
     def get_user_is_auth(role, o_id=None, token=None, email=None, is_post=False):
-        return get_user_if_auth(role, o_id, token, email) is None
-        
+        return User.get_user_if_auth(role, o_id, token, email) is None
