@@ -125,7 +125,7 @@ class EventTestCase(unittest.TestCase):
 
         rv = self.app.get('/events/getAllEvents')
         obj = json.loads(rv.data)
-        assert len(obj["events"]) is 1
+        assert len(obj["data"]) is 1
 
         rv = self.app.post('/events/addEvent/{}'.format(self.token),
                            data=json.dumps({
@@ -216,7 +216,7 @@ class EventTestCase(unittest.TestCase):
 
         rv = self.app.get('/events/getAllEvents')
         obj = json.loads(rv.data)
-        event_id = obj["events"][0]["id"]
+        event_id = obj["data"][0]["id"]
 
         rv = self.app.post('/events/submitAttendance/{}/{}'.format(event_id, self.token_student))
         assert "Success" in rv.data
@@ -265,7 +265,7 @@ class EventTestCase(unittest.TestCase):
 
         rv = self.app.get('/events/getAllEvents')
         obj = json.loads(rv.data)
-        event_id = obj["events"][0]["id"]
+        event_id = obj["data"][0]["id"]
 
         other_test_user = {
                 "firstname": "Jim",
@@ -374,7 +374,7 @@ class EventTestCase(unittest.TestCase):
 
         rv = self.app.get('/events/getAllEvents')
         obj = json.loads(rv.data)
-        event_id = obj["events"][0]["id"]
+        event_id = obj["data"][0]["id"]
 
         other_test_user = {
                 "firstname": "Jim",
@@ -467,7 +467,7 @@ class EventTestCase(unittest.TestCase):
 
         rv = self.app.get('/events/getAllEvents')
         obj = json.loads(rv.data)
-        event_id = obj["events"][0]["id"]
+        event_id = obj["data"][0]["id"]
 
         other_test_user = {
                 "firstname": "Jim",
@@ -577,7 +577,7 @@ class EventTestCase(unittest.TestCase):
 
         rv = self.app.get('/events/getAllEvents')
         obj = json.loads(rv.data)
-        event_id = obj["events"][0]["id"]
+        event_id = obj["data"][0]["id"]
         rv = self.app.post('/events/overEvent/{}/{}'.format(event_id, self.token))
         assert "Success" in rv.data
 
@@ -631,7 +631,7 @@ class EventTestCase(unittest.TestCase):
 
         rv = self.app.get('/events/getAllEvents')
         obj = json.loads(rv.data)
-        event_id = obj["events"][0]["id"]
+        event_id = obj["data"][0]["id"]
 
         other_test_user = {
                 "firstname": "Jim",

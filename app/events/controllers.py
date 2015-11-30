@@ -334,7 +334,7 @@ def distribute_points(event_id, auth_token):
 @events.route('/getAllEvents', methods=['GET'])
 def get_all_events():
     all_events = list(event_collection.find({}, {"_id": 0}))
-    return jsonify({"events": all_events})
+    return response.response_success(objects=all_events)
 
 
 @events.route('/closeEvent/<event_id>/<auth_token>', methods=['POST'])
