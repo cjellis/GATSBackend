@@ -1,5 +1,6 @@
 from app.database.db_connection import event_collection, skill_collection, user_collection
 from app.users.user_model import User
+from app.utils.msg_tools import ResponseTools as response
 import json
 from flask import Blueprint, request, jsonify
 from cerberus import Validator
@@ -192,13 +193,13 @@ def add_event(auth_token):
     data['state'] = 'open'
     user = User.get_user_from_db(token=auth_token)
     if not user.auth_request('faculty'):
-        return "ERROR: You do not have permission to create an event"
+        return response.response_fail(msg="ERROR: You do not have permission to create an event")
     data['owner'] = user.email
     if schemaValidator.validate(data):
         mongo_id = event_collection.insert_one(data).inserted_id
         if mongo_id:
-            return "Success"
-        return "ERROR: Could not create event. Please try again"
+            return response.response_success()
+        return response.response_fail(msg="ERROR: Could not create event. Please try again")
     return jsonify(schemaValidator.errors)
 
 
@@ -207,36 +208,36 @@ def submit_attendance(event_id, auth_token):
     user = User.get_user_from_db(token=auth_token)
     event = event_collection.find_one({"id": event_id}, {"_id": 0})
     if event['state'] == 'closed' or event['state'] == 'completed':
-        return "ERROR: Event is already closed"
+        return response.response_fail(msg="ERROR: Event is already closed")
     attendance = event['attendance']
     attendance.append({"firstName": user.f_name, "lastName": user.l_name, "email": user.email})
     user.events.append(event_id)
     event_collection.update_one({"id": event_id}, {"$set": {"attendance": attendance}})
     user_collection.update_one({"email": user.email}, {"$set": {"events": user.events}})
-    return "Success"
+    return response.response_success()
 
 
 @events.route('/changeAttendance/<event_id>/<auth_token>', methods=['POST'])
 def change_attendance(event_id, auth_token):
     user = User.get_user_from_db(token=auth_token)
     if not user.auth_request('faculty'):
-        return "ERROR: You do not have permission to alter an event"
+        return response.response_fail(msg="ERROR: You do not have permission to alter an event")
     event = event_collection.find_one({"id": event_id}, {"_id": 0})
     if event['owner'] != user.email:
-        return "ERROR: Not the owner of this event"
+        return response.response_fail(msg="ERROR: Not the owner of this event")
 
     event_collection.update_one({"id": event_id}, {"$set": {"checkAttendance": not event['checkAttendance']}})
-    return "Success"
+    return response.response_success()
 
 
 @events.route('/getAttendance/<event_id>/<auth_token>', methods=['GET'])
 def get_attendance(event_id, auth_token):
     user = User.get_user_from_db(token=auth_token)
     if not user.auth_request('faculty'):
-        return "ERROR: You do not have permission to alter an event"
+        return response.response_fail(msg="ERROR: You do not have permission to alter an event")
     event = event_collection.find_one({"id": event_id}, {"_id": 0})
     if event['owner'] != user.email:
-        return "ERROR: Not the owner of this event"
+        return response.response_fail(msg="ERROR: Not the owner of this event")
 
     attendance = event['attendance']
 
@@ -247,14 +248,14 @@ def get_attendance(event_id, auth_token):
 def verify_attendance(event_id, auth_token):
     user = User.get_user_from_db(token=auth_token)
     if not user.auth_request('faculty'):
-        return "ERROR: You do not have permission to alter an event"
+        return response.response_fail(msg="ERROR: You do not have permission to alter an event")
     event = event_collection.find_one({"id": event_id}, {"_id": 0})
     if event['owner'] != user.email:
-        return "ERROR: Not the owner of this event"
+        return response.response_fail(msg="ERROR: Not the owner of this event")
     if not event['state'] == 'closed':
-        return "ERROR: Event not yet closed"
+        return response.response_fail(msg="ERROR: Event not yet closed")
     if not event['checkAttendance']:
-        return "ERROR: attendance does not need to be verified"
+        return response.response_fail(msg="ERROR: attendance does not need to be verified")
 
     event_level = event['engagementLevel']
     level_value = level_to_value_map.get(event_level)
@@ -284,21 +285,21 @@ def verify_attendance(event_id, auth_token):
                                     {'skills': user.skills, 'dimensions': user.dimensions}})
     event_collection.update_one({"id": event['id']}, {"$set": {'state': 'completed', 'attendance': attendees}})
 
-    return "Success"
+    return response.response_success()
 
 
 @events.route('/distributePoints/<event_id>/<auth_token>', methods=['POST'])
 def distribute_points(event_id, auth_token):
     user = User.get_user_from_db(token=auth_token)
     if not user.auth_request('faculty'):
-        return "ERROR: You do not have permission to alter an event"
+        return response.response_fail(msg="ERROR: You do not have permission to alter an event")
     event = event_collection.find_one({"id": event_id}, {"_id": 0})
     if event['owner'] != user.email:
-        return "ERROR: Not the owner of this event"
+        return response.response_fail(msg="ERROR: Not the owner of this event")
     if not event['state'] == 'closed':
-        return "ERROR: Event not yet closed"
+        return response.response_fail(msg="ERROR: Event not yet closed")
     if event['checkAttendance']:
-        return "ERROR: attendance needs to be verified"
+        return response.response_fail(msg="ERROR: attendance needs to be verified")
     attendance = event['attendance']
     event_level = event['engagementLevel']
     level_value = level_to_value_map.get(event_level)
@@ -327,7 +328,7 @@ def distribute_points(event_id, auth_token):
                                     {'skills': user.skills, 'dimensions': user.dimensions}})
     event_collection.update_one({"id": event['id']}, {"$set": {'state': 'completed'}})
 
-    return "Success"
+    return response.response_success()
 
 
 @events.route('/getAllEvents', methods=['GET'])
@@ -340,25 +341,25 @@ def get_all_events():
 def close_event(event_id, auth_token):
     user = User.get_user_from_db(token=auth_token)
     if not user.auth_request('faculty'):
-        return "ERROR: You do not have permission to close an event"
+        return response.response_fail(msg="ERROR: You do not have permission to close an event")
     event = event_collection.find_one({"id": event_id}, {"_id": 0})
     if event['owner'] != user.email:
-        return "ERROR: Not the owner of this event"
+        return response.response_fail(msg="ERROR: Not the owner of this event")
     if not event['state'] == 'over':
-        return "ERROR: Event not over"
+        return response.response_fail(msg="ERROR: Event not over")
     event_collection.update_one({"id": event['id']}, {"$set": {'state': 'closed'}})
-    return "Success"
+    return response.response_success()
 
 
 @events.route('/overEvent/<event_id>/<auth_token>', methods=['POST'])
 def over_event(event_id, auth_token):
     user = User.get_user_from_db(token=auth_token)
     if not user.auth_request('faculty'):
-        return "ERROR: You do not have permission to set an event to over"
+        return response.response_fail(msg="ERROR: You do not have permission to set an event to over")
     event = event_collection.find_one({"id": event_id}, {"_id": 0})
     if event['owner'] != user.email:
-        return "ERROR: Not the owner of this event"
+        return response.response_fail(msg="ERROR: Not the owner of this event")
     if not event['state'] == 'open':
-        return "ERROR: Event not open, cannot be set to over"
+        return response.response_fail(msg="ERROR: Event not open, cannot be set to over")
     event_collection.update_one({"id": event['id']}, {"$set": {'state': 'over'}})
-    return "Success"
+    return response.response_success()
