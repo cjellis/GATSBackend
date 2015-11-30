@@ -2,7 +2,7 @@ from app.database.db_connection import event_collection, skill_collection, user_
 from app.users.user_model import User
 from app.utils.msg_tools import ResponseTools as response
 import json
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request
 from cerberus import Validator
 import datetime
 import uuid
@@ -200,7 +200,7 @@ def add_event(auth_token):
         if mongo_id:
             return response.response_success()
         return response.response_fail(msg="ERROR: Could not create event. Please try again")
-    return jsonify(schemaValidator.errors)
+    return response.response_fail(objects=schemaValidator.errors)
 
 
 @events.route('/submitAttendance/<event_id>/<auth_token>', methods=['POST'])
@@ -241,7 +241,7 @@ def get_attendance(event_id, auth_token):
 
     attendance = event['attendance']
 
-    return jsonify({"attendees": attendance})
+    return response.response_success(objects=attendance)
 
 
 @events.route('/verifyAttendance/<event_id>/<auth_token>', methods=['POST'])

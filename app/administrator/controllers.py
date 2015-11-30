@@ -3,7 +3,7 @@ from app.users.user_model import User
 from app.utils.msg_tools import ResponseTools as response
 import json
 from cerberus import Validator
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request
 
 admin = Blueprint('administrator', __name__, url_prefix='/administrator')
 
@@ -62,7 +62,7 @@ def add_skill(auth_token):
         if mongo_id:
             return response.response_success()
         return response.response_fail(msg="ERROR: Could not create skill. Please try again")
-    return jsonify(skill_schema_validator.errors)
+    return response.response_fail(objects=skill_schema_validator.errors)
 
 
 @admin.route('/addDimension/<auth_token>', methods=['POST'])
@@ -76,6 +76,6 @@ def add_dimension(auth_token):
         if mongo_id:
             return response.response_success()
         return response.response_fail(msg="ERROR: Could not create dimension. Please try again")
-    return jsonify(dimension_schema_validator.errors)
+    return response.response_fail(objects=dimension_schema_validator.errors)
 
 
