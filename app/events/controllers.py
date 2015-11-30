@@ -337,6 +337,16 @@ def get_all_events():
     return response.response_success(objects=all_events)
 
 
+@events.route('/getMyEvents/<auth_token>', methods=['GET'])
+def get_my_events(auth_token):
+    user = User.get_user_from_db(token=auth_token)
+    if not user.auth_request('faculty'):
+        all_events = []
+    else:
+        all_events = list(event_collection.find({"owner": user.email}, {"_id": 0}))
+    return response.response_success(objects=all_events)
+
+
 @events.route('/getAllOpenEvents', methods=['GET'])
 def get_all_open_events():
     all_events = list(event_collection.find({"state": "open"}, {"_id": 0}))
