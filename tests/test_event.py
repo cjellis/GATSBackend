@@ -125,7 +125,7 @@ class EventTestCase(unittest.TestCase):
 
         rv = self.app.get('/events/getAllEvents')
         obj = json.loads(rv.data)
-        assert len(obj["events"]) is 1
+        assert len(obj["data"]) is 1
 
         rv = self.app.post('/events/addEvent/{}'.format(self.token),
                            data=json.dumps({
@@ -216,7 +216,13 @@ class EventTestCase(unittest.TestCase):
 
         rv = self.app.get('/events/getAllEvents')
         obj = json.loads(rv.data)
-        event_id = obj["events"][0]["id"]
+        event_id = obj["data"][0]["id"]
+
+        rv = self.app.get('/events/getAllOpenEvents')
+        obj = json.loads(rv.data)
+        dup_event_id = obj["data"][0]["id"]
+
+        assert event_id == dup_event_id
 
         rv = self.app.post('/events/submitAttendance/{}/{}'.format(event_id, self.token_student))
         assert "Success" in rv.data
@@ -265,7 +271,7 @@ class EventTestCase(unittest.TestCase):
 
         rv = self.app.get('/events/getAllEvents')
         obj = json.loads(rv.data)
-        event_id = obj["events"][0]["id"]
+        event_id = obj["data"][0]["id"]
 
         other_test_user = {
                 "firstname": "Jim",
@@ -301,6 +307,10 @@ class EventTestCase(unittest.TestCase):
 
         rv = self.app.post('/events/closeEvent/{}/{}'.format(event_id, self.token))
         assert "Success" in rv.data
+
+        rv = self.app.get('/events/getAllOpenEvents')
+        obj = json.loads(rv.data)
+        assert len(obj["data"]) == 0
 
         rv = self.app.post('/events/verifyAttendance/{}/{}'.format(event_id, self.token))
         assert "ERROR: attendance does not need to be verified" in rv.data
@@ -374,7 +384,7 @@ class EventTestCase(unittest.TestCase):
 
         rv = self.app.get('/events/getAllEvents')
         obj = json.loads(rv.data)
-        event_id = obj["events"][0]["id"]
+        event_id = obj["data"][0]["id"]
 
         other_test_user = {
                 "firstname": "Jim",
@@ -467,7 +477,7 @@ class EventTestCase(unittest.TestCase):
 
         rv = self.app.get('/events/getAllEvents')
         obj = json.loads(rv.data)
-        event_id = obj["events"][0]["id"]
+        event_id = obj["data"][0]["id"]
 
         other_test_user = {
                 "firstname": "Jim",
@@ -577,7 +587,7 @@ class EventTestCase(unittest.TestCase):
 
         rv = self.app.get('/events/getAllEvents')
         obj = json.loads(rv.data)
-        event_id = obj["events"][0]["id"]
+        event_id = obj["data"][0]["id"]
         rv = self.app.post('/events/overEvent/{}/{}'.format(event_id, self.token))
         assert "Success" in rv.data
 
@@ -631,7 +641,7 @@ class EventTestCase(unittest.TestCase):
 
         rv = self.app.get('/events/getAllEvents')
         obj = json.loads(rv.data)
-        event_id = obj["events"][0]["id"]
+        event_id = obj["data"][0]["id"]
 
         other_test_user = {
                 "firstname": "Jim",

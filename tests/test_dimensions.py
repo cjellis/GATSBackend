@@ -46,4 +46,4 @@ class DimensionsTestCase(unittest.TestCase):
         rv = self.app.get('/dimensions/getDimensions')
         assert "TestDimension" in rv.data
         obj = json.loads(rv.data)
-        assert len(obj["dimensions"]) is 1
+        assert len(obj["data"]) is 1
