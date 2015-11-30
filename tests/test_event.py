@@ -500,7 +500,7 @@ class EventTestCase(unittest.TestCase):
 
         rv = self.app.get('/events/getAttendance/{}/{}'.format(event_id, self.token))
         data = json.loads(rv.data)
-        assert len(data["attendees"]) == 1
+        assert len(data["data"]) == 1
 
     def test_event_submit_attendance_late(self):
         rv = self.app.post('/events/addEvent/{}'.format(self.token),
