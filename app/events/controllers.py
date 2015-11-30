@@ -337,6 +337,12 @@ def get_all_events():
     return response.response_success(objects=all_events)
 
 
+@events.route('/getAllOpenEvents', methods=['GET'])
+def get_all_open_events():
+    all_events = list(event_collection.find({"state": "open"}, {"_id": 0}))
+    return response.response_success(objects=all_events)
+
+
 @events.route('/closeEvent/<event_id>/<auth_token>', methods=['POST'])
 def close_event(event_id, auth_token):
     user = User.get_user_from_db(token=auth_token)
