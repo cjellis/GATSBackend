@@ -330,7 +330,7 @@ class EventTestCase(unittest.TestCase):
         rv = self.app.post('/events/distributePoints/{}/{}'.format(event_id, self.token))
         assert "Success" in rv.data
 
-        url = '/users/getUser/em/{0}/{1}'.format(self.test_user['email'],
+        url = '/users/getUser/tk/{0}/{1}'.format(self.test_user['email'],
                                             self.resp['data']['user']['token'])
         rv = self.app.get(url, data=json.dumps(self.test_user), content_type='application/json')
         data = json.loads(rv.data)
@@ -423,7 +423,7 @@ class EventTestCase(unittest.TestCase):
                            content_type='application/json')
         assert "Success" in rv.data
 
-        url = '/users/getUser/em/{0}/{1}'.format(self.test_user['email'],
+        url = '/users/getUser/tk/{0}/{1}'.format(self.test_user['email'],
                                                  self.resp['data']['user']['token'])
         rv = self.app.get(url, data=json.dumps(self.test_user), content_type='application/json')
         data = json.loads(rv.data)

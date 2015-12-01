@@ -215,13 +215,13 @@ class User:
         user = User.get_user_from_db(o_id, token, email)
         if user is not None:
             if token is not None:
-                if email is not user.email:
+                if email != user.email:
                     if user.can_access(email):
-                        return User.get_user_if_auth(o_id = o_id, email = email, is_post = is_post)
+                        return user
+                else:
+                    return user
             else:
-                if user.password is User.gen_pw_hash(password):
+                # TODO put real parameter for suagr
+                if user.password == User.gen_pw_hash(password, user.email):
                     return user
         return None
-    
-
-        

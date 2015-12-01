@@ -191,8 +191,8 @@ def add_event(auth_token):
     data['id'] = str(uuid.uuid4())
     data['attendance'] = []
     data['state'] = 'open'
-    user = User.get_user_from_db(token=auth_token)
-    if not user.auth_request('faculty'):
+    user = User.get_user_check_auth('faculty', token=auth_token)
+    if user is None:
         return response.response_fail(msg="ERROR: You do not have permission to create an event")
     data['owner'] = user.email
     if schemaValidator.validate(data):
@@ -219,8 +219,8 @@ def submit_attendance(event_id, auth_token):
 
 @events.route('/changeAttendance/<event_id>/<auth_token>', methods=['POST'])
 def change_attendance(event_id, auth_token):
-    user = User.get_user_from_db(token=auth_token)
-    if not user.auth_request('faculty'):
+    user = User.get_user_check_auth('faculty', token=auth_token)
+    if user is None:
         return response.response_fail(msg="ERROR: You do not have permission to alter an event")
     event = event_collection.find_one({"id": event_id}, {"_id": 0})
     if event['owner'] != user.email:
@@ -232,8 +232,8 @@ def change_attendance(event_id, auth_token):
 
 @events.route('/getAttendance/<event_id>/<auth_token>', methods=['GET'])
 def get_attendance(event_id, auth_token):
-    user = User.get_user_from_db(token=auth_token)
-    if not user.auth_request('faculty'):
+    user = User.get_user_check_auth('faculty', token=auth_token)
+    if user is None:
         return response.response_fail(msg="ERROR: You do not have permission to alter an event")
     event = event_collection.find_one({"id": event_id}, {"_id": 0})
     if event['owner'] != user.email:
@@ -246,8 +246,8 @@ def get_attendance(event_id, auth_token):
 
 @events.route('/verifyAttendance/<event_id>/<auth_token>', methods=['POST'])
 def verify_attendance(event_id, auth_token):
-    user = User.get_user_from_db(token=auth_token)
-    if not user.auth_request('faculty'):
+    user = User.get_user_check_auth('faculty', token=auth_token)
+    if user is None:
         return response.response_fail(msg="ERROR: You do not have permission to alter an event")
     event = event_collection.find_one({"id": event_id}, {"_id": 0})
     if event['owner'] != user.email:
@@ -290,8 +290,8 @@ def verify_attendance(event_id, auth_token):
 
 @events.route('/distributePoints/<event_id>/<auth_token>', methods=['POST'])
 def distribute_points(event_id, auth_token):
-    user = User.get_user_from_db(token=auth_token)
-    if not user.auth_request('faculty'):
+    user = User.get_user_check_auth('faculty', token=auth_token)
+    if user is None:
         return response.response_fail(msg="ERROR: You do not have permission to alter an event")
     event = event_collection.find_one({"id": event_id}, {"_id": 0})
     if event['owner'] != user.email:
@@ -339,8 +339,8 @@ def get_all_events():
 
 @events.route('/getMyEvents/<auth_token>', methods=['GET'])
 def get_my_events(auth_token):
-    user = User.get_user_from_db(token=auth_token)
-    if not user.auth_request('faculty'):
+    user = User.get_user_check_auth('faculty', token=auth_token)
+    if user is None:
         all_events = []
     else:
         all_events = list(event_collection.find({"owner": user.email}, {"_id": 0}))
@@ -355,8 +355,8 @@ def get_all_open_events():
 
 @events.route('/closeEvent/<event_id>/<auth_token>', methods=['POST'])
 def close_event(event_id, auth_token):
-    user = User.get_user_from_db(token=auth_token)
-    if not user.auth_request('faculty'):
+    user = User.get_user_check_auth('faculty', token=auth_token)
+    if user is None:
         return response.response_fail(msg="ERROR: You do not have permission to close an event")
     event = event_collection.find_one({"id": event_id}, {"_id": 0})
     if event['owner'] != user.email:
@@ -369,8 +369,8 @@ def close_event(event_id, auth_token):
 
 @events.route('/overEvent/<event_id>/<auth_token>', methods=['POST'])
 def over_event(event_id, auth_token):
-    user = User.get_user_from_db(token=auth_token)
-    if not user.auth_request('faculty'):
+    user = User.get_user_check_auth('faculty', token=auth_token)
+    if user is None:
         return response.response_fail(msg="ERROR: You do not have permission to set an event to over")
     event = event_collection.find_one({"id": event_id}, {"_id": 0})
     if event['owner'] != user.email:

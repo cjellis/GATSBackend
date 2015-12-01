@@ -123,7 +123,7 @@ def add_user():
     if 'year' in data and 'major' in data:
         password = User.gen_pw_hash(data['password'], data['email'])
         user = User(data['firstname'], data['lastname'], email,
-                    data['password'], data['year'], data['major'])
+                    password, data['year'], data['major'])
     else:
         password = User.gen_pw_hash(data['password'], data['email'])
         user = User(data['firstname'], data['lastname'], email,
