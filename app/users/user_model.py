@@ -124,7 +124,7 @@ class User:
     def gen_pw_hash(password, sugar):
         #TODO make salt more unique
         salt = app.app.config['SALT'] + sugar
-        return binascii.hexlify(hashlib.pbkdf2_hmac('sha256', password, salt, 100000))
+        return hashlib.sha512(password + salt).hexdigest()
     
     @staticmethod
     def gen_token_hash(token):

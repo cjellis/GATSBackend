@@ -25,7 +25,7 @@ class DBTestCase(unittest.TestCase):
             'tokenTTL': 1000,
             'is_auth': True,
             'events': [],
-            'roles': ['administrator', 'faculty', 'superuser'],
+            'roles': ['admin', 'faculty', 'superuser'],
             'year': None,
             'major': None,
             'skills': [],
