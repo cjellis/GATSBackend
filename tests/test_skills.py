@@ -51,4 +51,4 @@ class SkillsTestCase(unittest.TestCase):
         rv = self.app.get('/skills/getSkills')
         assert "TestSkill" in rv.data
         obj = json.loads(rv.data)
-        assert len(obj["skills"]) is 1
+        assert len(obj["data"]) is 1

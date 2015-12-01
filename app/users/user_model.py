@@ -25,7 +25,7 @@ class User:
         self.token = token
         self.tokenTTL = tokenTTL  # this number is increased when account is authorized
         self.is_auth = is_auth
-        if roles is None:
+        if len(roles) == 0:
             self.roles = User.get_role(email)
         else:
             self.roles = roles
@@ -109,7 +109,7 @@ class User:
         if self.tokenTTL is 0:
             self.token = User.gen_token()
             user_collection.result = user_collection.update_one(
-                {'_id': ObjectId(o_id)},
+                {'_id': ObjectId(self.o_id)},
                 {
                     '$set': {'token': self.token, 'tokenTTL': DEFAULT_TTL}  # increase as necessary
                 })
@@ -193,13 +193,23 @@ class User:
                     mongo_user['dimensions'],
                     mongo_user['_id'])
         # will add back in later
+<<<<<<< HEAD
         if is_post: user.update_token()
+=======
+        if is_post:
+            user.update_token()
+>>>>>>> 355ed4a673c1c9b82b0372d667a8135f29e98b36
         return user
     
     # returns a user if they are authorized for a role
     @staticmethod
+<<<<<<< HEAD
     def get_user_if_auth(o_id=None, token=None, email=None, password=None, is_post=False):
         user = get_user_from_db(o_id, token, email)
+=======
+    def get_user_if_auth(role, o_id=None, token=None, email=None, is_post=False):
+        user = User.get_user_from_db(o_id, token, email)
+>>>>>>> 355ed4a673c1c9b82b0372d667a8135f29e98b36
         if user is not None:
             if token is not None:
                 if email is not user.email:
@@ -212,6 +222,11 @@ class User:
     
     # returns weather a user is authorized for a role
     @staticmethod
+<<<<<<< HEAD
     def get_user_is_auth(o_id=None, token=None, email=None, password=None, is_post=False):
         return get_user_if_auth(o_id, token, email, password, is_post) is not None
         
+=======
+    def get_user_is_auth(role, o_id=None, token=None, email=None, is_post=False):
+        return User.get_user_if_auth(role, o_id, token, email) is None
+>>>>>>> 355ed4a673c1c9b82b0372d667a8135f29e98b36

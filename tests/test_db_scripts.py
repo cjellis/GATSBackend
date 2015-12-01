@@ -34,11 +34,11 @@ class DBTestCase(unittest.TestCase):
 
         rv = self.app.get('/dimensions/getDimensions')
         obj = json.loads(rv.data)
-        assert len(obj["dimensions"]) is 0
+        assert len(obj["data"]) is 0
 
         rv = self.app.get('/skills/getSkills')
         obj = json.loads(rv.data)
-        assert len(obj["skills"]) is 0
+        assert len(obj["data"]) is 0
 
         rv = self.app.post('/administrator/addDimension/ADMIN_TOKEN',
                            data=json.dumps(dict(name="TestDimension")),
@@ -47,7 +47,7 @@ class DBTestCase(unittest.TestCase):
         rv = self.app.get('/dimensions/getDimensions')
         assert "TestDimension" in rv.data
         obj = json.loads(rv.data)
-        assert len(obj["dimensions"]) is 1
+        assert len(obj["data"]) is 1
 
         rv = self.app.post('/administrator/addDimension/ADMIN_TOKEN',
                            data=json.dumps(dict(name="TestDimension")),
@@ -61,26 +61,26 @@ class DBTestCase(unittest.TestCase):
         rv = self.app.get('/skills/getSkills')
         assert "TestSkill" in rv.data
         obj = json.loads(rv.data)
-        assert len(obj["skills"]) is 1
+        assert len(obj["data"]) is 1
 
         ClearMongo.clear_mongo()
 
         rv = self.app.get('/dimensions/getDimensions')
         obj = json.loads(rv.data)
-        assert len(obj["dimensions"]) is 0
+        assert len(obj["data"]) is 0
 
         rv = self.app.get('/skills/getSkills')
         obj = json.loads(rv.data)
-        assert len(obj["skills"]) is 0
+        assert len(obj["data"]) is 0
 
     def test_add_data(self):
         SetUpDb.add_data()
         rv = self.app.get('/dimensions/getDimensions')
         obj = json.loads(rv.data)
-        assert len(obj["dimensions"]) is 5
+        assert len(obj["data"]) is 5
 
         rv = self.app.get('/skills/getSkills')
         obj = json.loads(rv.data)
-        assert len(obj["skills"]) is 8
+        assert len(obj["data"]) is 8
 
 

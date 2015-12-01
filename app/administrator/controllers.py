@@ -1,8 +1,9 @@
 from app.database.db_connection import dimension_collection, skill_collection
 from app.users.user_model import User
+from app.utils.msg_tools import ResponseTools as response
 import json
 from cerberus import Validator
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request
 
 admin = Blueprint('administrator', __name__, url_prefix='/administrator')
 
@@ -54,27 +55,27 @@ dimension_schema_validator = Validator(dimension_schema)
 def add_skill(auth_token):
     user = User.get_user_from_db(token=auth_token)
     if not user.auth_request('administrator'):
-        return "ERROR: You do not have permission to create a skill"
+        return response.response_fail(msg="ERROR: You do not have permission to create a skill")
     data = json.loads(request.data)
     if skill_schema_validator.validate(data):
         mongo_id = skill_collection.insert_one(data).inserted_id
         if mongo_id:
-            return "Success"
-        return "ERROR: Could not create skill. Please try again"
-    return jsonify(skill_schema_validator.errors)
+            return response.response_success()
+        return response.response_fail(msg="ERROR: Could not create skill. Please try again")
+    return response.response_fail(objects=skill_schema_validator.errors)
 
 
 @admin.route('/addDimension/<auth_token>', methods=['POST'])
 def add_dimension(auth_token):
     user = User.get_user_from_db(token=auth_token)
     if not user.auth_request('administrator'):
-        return "ERROR: You do not have permission to create a dimension"
+        return response.response_fail(msg="ERROR: You do not have permission to create a dimension")
     data = json.loads(request.data)
     if dimension_schema_validator.validate(data):
         mongo_id = dimension_collection.insert_one(data).inserted_id
         if mongo_id:
-            return "Success"
-        return "ERROR: Could not create dimension. Please try again"
-    return jsonify(dimension_schema_validator.errors)
+            return response.response_success()
+        return response.response_fail(msg="ERROR: Could not create dimension. Please try again")
+    return response.response_fail(objects=dimension_schema_validator.errors)
 
 
