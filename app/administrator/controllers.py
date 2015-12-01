@@ -53,7 +53,7 @@ dimension_schema_validator = Validator(dimension_schema)
 
 @admin.route('/addSkill/<auth_token>', methods=['POST'])
 def add_skill(auth_token):
-    if User.get_user_check_auth('admin', token=auth_token) is not None:
+    if User.get_user_check_auth('admin', token=auth_token) is None:
         return response.response_fail(msg="ERROR: You do not have permission to create a skill")
     data = json.loads(request.data)
     if skill_schema_validator.validate(data):
@@ -66,7 +66,7 @@ def add_skill(auth_token):
 
 @admin.route('/addDimension/<auth_token>', methods=['POST'])
 def add_dimension(auth_token):
-    if User.get_user_check_auth('admin', token=auth_token) is not None:
+    if User.get_user_check_auth('admin', token=auth_token) is None:
         return response.response_fail(msg="ERROR: You do not have permission to create a dimension")
     data = json.loads(request.data)
     if dimension_schema_validator.validate(data):

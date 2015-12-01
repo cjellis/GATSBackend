@@ -90,8 +90,8 @@ class AppTestCase(unittest.TestCase):
                        data=json.dumps(test_user),
                        content_type='application/json')
         resp = json.loads(response.data)
-        url = '/users/getUser/tk/{0}/{1}'.format(test_user['email'],
-                                            resp['data']['user']['token'])
+        student_token = resp['data']['user']['token']
+        url = '/users/getUser/tk/{0}/{1}'.format(test_user['email'], student_token)
         rv = self.app.get(url, data=json.dumps(test_user), content_type='application/json')
         data = json.loads(rv.data)
         assert data['response']['code'] is 200
@@ -109,10 +109,11 @@ class AppTestCase(unittest.TestCase):
         token = json.loads(rv.data)['data']['user']['token']
 
         url = '/users/getUser/tk/{0}/{1}'.format(test_user['email'],
-                                            token)
+                                            student_token)
         rv = self.app.get(url, data=json.dumps(test_user), content_type='application/json')
         data = json.loads(rv.data)
         assert data['response']['code'] is 200
+
         assert data['data']['email'] == test_user['email']
         
         url = '/users/getUser/pw/{0}/{1}'.format(test_user['email'],
