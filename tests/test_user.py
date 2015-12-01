@@ -114,6 +114,13 @@ class AppTestCase(unittest.TestCase):
         data = json.loads(rv.data)
         assert data['response']['code'] is 200
         assert data['data']['email'] == test_user['email']
+        
+        url = '/users/getUser/pw/{0}/{1}'.format(test_user['email'],
+                                            'password')
+        rv = self.app.get(url, data=json.dumps(test_user), content_type='application/json')
+        data = json.loads(rv.data)
+        assert data['response']['code'] is 200
+        assert data['data']['email'] == test_user['email']
             
         url = '/users/getUser/tk/{0}/{1}'.format(test_user['email'],
                                     'SUPER_SPECIAL_TOKEN')
