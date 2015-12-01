@@ -5,9 +5,12 @@ import json
 from cerberus import Validator
 from flask import Blueprint, request
 
+# blueprint for flask
 admin = Blueprint('administrator', __name__, url_prefix='/administrator')
 
 
+###########################################################################
+# validators
 def validate_dimensions_exist(field, value, error):
     for v in value:
         if dimension_collection.find({"name": v}).count() is 0:
@@ -23,6 +26,9 @@ def validate_dimension_name_does_not_exist(field, value, error):
     if dimension_collection.find({"name": value}).count() is not 0:
         error(field, "Dimension already exists with given name")
 
+
+###########################################################################
+# Schema for a skill
 skill_schema = {
     'name': {
         'required': True,
@@ -38,8 +44,8 @@ skill_schema = {
 }
 
 skill_schema_validator = Validator(skill_schema)
-
-
+###########################################################################
+# Schema for a dimension
 dimension_schema = {
     'name': {
         'required': True,
@@ -51,6 +57,13 @@ dimension_schema = {
 dimension_schema_validator = Validator(dimension_schema)
 
 
+###########################################################################
+# API Endpoints
+
+##
+# Add a skill to the DB
+# checks that user is admin, that the skill name doesnt exist, and that
+# all dimensions related to the skill exist
 @admin.route('/addSkill/<auth_token>', methods=['POST'])
 def add_skill(auth_token):
     if User.get_user_check_auth('admin', token=auth_token) is None:
@@ -64,6 +77,10 @@ def add_skill(auth_token):
     return response.response_fail(objects=skill_schema_validator.errors)
 
 
+##
+# Add a Dimension to the DB
+# checks that the user is admin and the dimension name does not already
+# exist in the DB
 @admin.route('/addDimension/<auth_token>', methods=['POST'])
 def add_dimension(auth_token):
     if User.get_user_check_auth('admin', token=auth_token) is None:
