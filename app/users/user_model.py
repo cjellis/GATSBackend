@@ -68,7 +68,7 @@ class User:
             'firstname': self.f_name,
             'lastname': self.l_name,
             'email': self.email,
-            #'password': self.password,
+            'password': self.password,
             'token': self.token,
             'tokenTTL': self.tokenTTL,
             'is_auth': self.is_auth,
