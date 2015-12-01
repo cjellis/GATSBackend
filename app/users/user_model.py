@@ -63,12 +63,16 @@ class User:
             dimension_to_points.append(dimension_dict)
         return dimension_to_points
         
-    def json_dump(self):
+    def json_dump(self, inc_pass=False):
+        if inc_pass:
+            pwd = self.password
+        else:
+            pwd = ''
         json_dict = {
             'firstname': self.f_name,
             'lastname': self.l_name,
             'email': self.email,
-            'password': self.password,
+            'password': pwd,
             'token': self.token,
             'tokenTTL': self.tokenTTL,
             'is_auth': self.is_auth,
@@ -197,6 +201,14 @@ class User:
             user.update_token()
         return user
     
+    @staticmethod
+    def get_user_check_auth(role, token):
+        user.get_user_from_db(token=token)
+        if user is not None:
+            if role in user.roles:
+                return user
+        return None
+    
     # returns a user if they are authorized for a role
     @staticmethod
     def get_user_if_auth(o_id=None, token=None, email=None, password=None, is_post=False):
@@ -211,8 +223,5 @@ class User:
                     return user
         return None
     
-    # returns weather a user is authorized for a role
-    @staticmethod
-    def get_user_is_auth(o_id=None, token=None, email=None, password=None, is_post=False):
-        return get_user_if_auth(o_id, token, email, password, is_post) is not None
+
         

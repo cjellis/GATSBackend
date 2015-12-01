@@ -129,7 +129,7 @@ def add_user():
         user = User(data['firstname'], data['lastname'], email,
                     password)
         
-    data = user.json_dump()
+    data = user.json_dump(True)
     if schemaValidator.validate(data):
         o_id = usersdb.insert_one(data).inserted_id
         user.send_verify(o_id)
