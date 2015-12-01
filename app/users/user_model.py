@@ -68,7 +68,7 @@ class User:
             'firstname': self.f_name,
             'lastname': self.l_name,
             'email': self.email,
-            'password': self.password,
+            #'password': self.password,
             'token': self.token,
             'tokenTTL': self.tokenTTL,
             'is_auth': self.is_auth,
@@ -181,7 +181,7 @@ class User:
         user = User(mongo_user['firstname'],
                     mongo_user['lastname'],
                     mongo_user['email'],
-                    #mongo_user['password'],
+                    mongo_user['password'],
                     mongo_user['year'],
                     mongo_user['major'],
                     mongo_user['token'],
@@ -199,7 +199,7 @@ class User:
     
     # returns a user if they are authorized for a role
     @staticmethod
-    def get_user_if_auth(role, o_id=None, token=None, email=None, is_post=False):
+    def get_user_if_auth(o_id=None, token=None, email=None, password=None, is_post=False):
         user = User.get_user_from_db(o_id, token, email)
         if user is not None:
             if token is not None:
