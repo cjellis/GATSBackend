@@ -203,7 +203,7 @@ class User:
     
     @staticmethod
     def get_user_check_auth(role, token):
-        user.get_user_from_db(token=token)
+        User.get_user_from_db(token=token)
         if user is not None:
             if role in user.roles:
                 return user
