@@ -1,4 +1,4 @@
-import uuid, hashlib, base64, app
+import uuid, hashlib, binascii, base64, app
 from app.database.db_connection import user_collection, skill_collection, dimension_collection
 from bson import ObjectId
 from flask.ext.mail import Message
@@ -81,6 +81,9 @@ class User:
         }
         return json_dict
     
+    def can_access(self, email):
+        return 'admin' in self.roles or ('faculty' in self.roles and 'student' in User.get_role(email))
+    
     def is_authorized(self):
         return self.is_auth
     
@@ -112,21 +115,16 @@ class User:
                 })
         else:
             self.update_ttl()
-            
-    # authorizes requests based on role
-    def auth_request(self, role=None):
-        return 'admin' in self.roles or role in self.roles
-    
     
     @staticmethod
     def gen_token():
         return str(uuid.uuid1())
     
     @staticmethod
-    def gen_pw_hash(password):
+    def gen_pw_hash(password, sugar):
         #TODO make salt more unique
-        salt = app.app.config['SALT']
-        return hashlib.sha512(password).hexdigest()
+        salt = app.app.config['SALT'] + sugar
+        return binascii.hexlify(hashlib.pbkdf2_hmac('sha256', password, salt, 100000))
     
     @staticmethod
     def gen_token_hash(token):
@@ -171,10 +169,10 @@ class User:
     
     @staticmethod
     def get_user_from_db(o_id=None, token=None, email=None, is_post=False):
-        if o_id is not None:
-            mongo_user = user_collection.find_one({'_id': ObjectId(o_id)})
-        elif token is not None:
+        if token is not None:
             mongo_user = user_collection.find_one({'token': token})
+        elif o_id is not None:
+            mongo_user = user_collection.find_one({'_id': ObjectId(o_id)})
         else:
             mongo_user = user_collection.find_one({'email': email})
             
@@ -183,7 +181,7 @@ class User:
         user = User(mongo_user['firstname'],
                     mongo_user['lastname'],
                     mongo_user['email'],
-                    mongo_user['password'],
+                    #mongo_user['password'],
                     mongo_user['year'],
                     mongo_user['major'],
                     mongo_user['token'],
@@ -195,20 +193,25 @@ class User:
                     mongo_user['dimensions'],
                     mongo_user['_id'])
         # will add back in later
-        if is_post user.update_token()
+        if is_post: user.update_token()
         return user
     
     # returns a user if they are authorized for a role
     @staticmethod
-    def get_user_if_auth(role, o_id=None, token=None, email=None, is_post=False):
+    def get_user_if_auth(o_id=None, token=None, email=None, password=None, is_post=False):
         user = get_user_from_db(o_id, token, email)
         if user is not None:
-            if user.auth_request(role):
-                return user
+            if token is not None:
+                if email is not user.email:
+                    if user.can_access(email):
+                        return User.get_user_if_auth(o_id = o_id, email = email, is_post = is_post)
+            else:
+                if user.password is User.gen_pw_hash(password):
+                    return user
         return None
     
     # returns weather a user is authorized for a role
     @staticmethod
-    def get_user_is_auth(role, o_id=None, token=None, email=None, is_post=False):
-        return get_user_if_auth(role, o_id, token, email) is None
+    def get_user_is_auth(o_id=None, token=None, email=None, password=None, is_post=False):
+        return get_user_if_auth(o_id, token, email, password, is_post) is not None
         

@@ -123,10 +123,11 @@ def add_user():
     # email = data['email']
 
     if 'year' in data and 'major' in data:
+        password = User.gen_pw_hash(data['password'], data['email'])
         user = User(data['firstname'], data['lastname'], email,
                     data['password'], data['year'], data['major'])
     else:
-        password = User.gen_pw_hash(data['password'])
+        password = User.gen_pw_hash(data['password'], data['email'])
         user = User(data['firstname'], data['lastname'], email,
                     password)
         
@@ -147,11 +148,11 @@ def verify_user(o_id, token):
 
 
 # @users.route('/getUser/id/<id>/<auth_token>', methods=['GET'])    #add later if needed
-@users.route('/getUser/em/<email>/<auth_token>', methods=['GET'])
-def get_user(email, auth_token):
-    requester = User.get_user_from_db(token=auth_token)
-    requested_user = User.get_user_from_db(email=email)
-    if requester.email == email or 'admin' in requester.roles:
-        return msg_tools.response_success(objects=requested_user.json_dump())
+@users.route('/getUser/pw/<email>/<password>')
+@users.route('/getUser/tk/<email>/<auth_token>', methods=['GET'])
+def get_user(email, password = None, auth_token = None):
+    user = User.get_user_if_auth(email=email, token=auth_token, password=password)
+    if user is not None:
+        return msg_tools.response_success(objects=user.json_dump())
     else:
         return msg_tools.response_fail(code=401, objects={'error': 'permission denied'})

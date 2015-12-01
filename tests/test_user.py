@@ -36,8 +36,24 @@ class AppTestCase(unittest.TestCase):
             'dimensions': []
         })
 
+        user_collection.insert_one({
+            'firstname': 'Joe',
+            'lastname': 'Sixpack',
+            'email': 'sixpack.j@neu.edu',
+            'password': 'P@$$w0rD',
+            'token': 'SUPER_SPECIAL_TOKEN',
+            'tokenTTL': 1000,
+            'is_auth': True,
+            'events': [],
+            'roles': ['student'],
+            'year': 'Sophomore',
+            'major': 'Jobless',
+            'skills': [],
+            'dimensions': []
+        })
+        
         self.app = app.app.test_client()
-
+        
     def test_add_user(self):
         test_user = {
                         "firstname": "John",
@@ -64,7 +80,7 @@ class AppTestCase(unittest.TestCase):
         test_user = {
             "firstname": "John",
             "lastname": "Smith",
-            "email": "smith.j2@husky.neu.edu",
+            "email": "smith.j@husky.neu.edu",
             "password": "password",
             "year": "Sophomore",
             "major": "Psycology"
@@ -74,7 +90,7 @@ class AppTestCase(unittest.TestCase):
                        data=json.dumps(test_user),
                        content_type='application/json')
         resp = json.loads(response.data)
-        url = '/users/getUser/em/{0}/{1}'.format(test_user['email'],
+        url = '/users/getUser/tk/{0}/{1}'.format(test_user['email'],
                                             resp['data']['user']['token'])
         rv = self.app.get(url, data=json.dumps(test_user), content_type='application/json')
         data = json.loads(rv.data)
@@ -92,8 +108,15 @@ class AppTestCase(unittest.TestCase):
                        content_type='application/json')
         token = json.loads(rv.data)['data']['user']['token']
 
-        url = '/users/getUser/em/{0}/{1}'.format(test_user['email'],
+        url = '/users/getUser/tk/{0}/{1}'.format(test_user['email'],
                                             token)
+        rv = self.app.get(url, data=json.dumps(test_user), content_type='application/json')
+        data = json.loads(rv.data)
+        assert data['response']['code'] is 200
+        assert data['data']['email'] == test_user['email']
+            
+        url = '/users/getUser/tk/{0}/{1}'.format(test_user['email'],
+                                    'SUPER_SPECIAL_TOKEN')
         rv = self.app.get(url, data=json.dumps(test_user), content_type='application/json')
         data = json.loads(rv.data)
         assert 'permission denied' in data['data']['error']
