@@ -44,6 +44,7 @@ skill_schema = {
 }
 
 skill_schema_validator = Validator(skill_schema)
+
 ###########################################################################
 # Schema for a dimension
 dimension_schema = {
@@ -55,7 +56,6 @@ dimension_schema = {
 }
 
 dimension_schema_validator = Validator(dimension_schema)
-
 
 ###########################################################################
 # API Endpoints

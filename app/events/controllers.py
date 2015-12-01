@@ -271,6 +271,11 @@ def get_attendance(event_id, auth_token):
     return response.response_success(objects=attendance)
 
 
+##
+# allows a faculty to owner to distribute points to only those who attended the event
+# takes input from the post request which consists of a list of email addresses
+# the email addresses are the email addresses of each student that attended
+# the state of the event must be closed and the event must be set to verify attendance
 @events.route('/verifyAttendance/<event_id>/<auth_token>', methods=['POST'])
 def verify_attendance(event_id, auth_token):
     user = User.get_user_check_auth('faculty', token=auth_token)
@@ -315,6 +320,11 @@ def verify_attendance(event_id, auth_token):
     return response.response_success()
 
 
+##
+# allows a faculty owner to distribute the points to the student attendees
+# it checks that the event is closed and that verify attendance is not set
+# it does not take any input from the post body, it simply gives all those
+# said they attended the points
 @events.route('/distributePoints/<event_id>/<auth_token>', methods=['POST'])
 def distribute_points(event_id, auth_token):
     user = User.get_user_check_auth('faculty', token=auth_token)
@@ -358,12 +368,16 @@ def distribute_points(event_id, auth_token):
     return response.response_success()
 
 
+##
+# get all events in the system
 @events.route('/getAllEvents', methods=['GET'])
 def get_all_events():
     all_events = list(event_collection.find({}, {"_id": 0}))
     return response.response_success(objects=all_events)
 
 
+##
+# get all events for a faculty owner
 @events.route('/getMyEvents/<auth_token>', methods=['GET'])
 def get_my_events(auth_token):
     user = User.get_user_check_auth('faculty', token=auth_token)
@@ -374,12 +388,16 @@ def get_my_events(auth_token):
     return response.response_success(objects=all_events)
 
 
+##
+# gets all open events in the system
 @events.route('/getAllOpenEvents', methods=['GET'])
 def get_all_open_events():
     all_events = list(event_collection.find({"state": "open"}, {"_id": 0}))
     return response.response_success(objects=all_events)
 
 
+##
+# allows a faculty owner to set an event from over to closed
 @events.route('/closeEvent/<event_id>/<auth_token>', methods=['POST'])
 def close_event(event_id, auth_token):
     user = User.get_user_check_auth('faculty', token=auth_token)
@@ -394,6 +412,8 @@ def close_event(event_id, auth_token):
     return response.response_success()
 
 
+##
+# allows a faculty owner to set an event to over
 @events.route('/overEvent/<event_id>/<auth_token>', methods=['POST'])
 def over_event(event_id, auth_token):
     user = User.get_user_check_auth('faculty', token=auth_token)
