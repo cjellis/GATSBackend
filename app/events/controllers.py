@@ -7,8 +7,12 @@ from cerberus import Validator
 import datetime
 import uuid
 
+###########################################################################
+# blueprint for flask
 events = Blueprint('events', __name__, url_prefix='/events')
 
+###########################################################################
+# Global Constants
 length_to_value_map = {
     'Day': 1,
     'Week': 2,
@@ -23,6 +27,8 @@ level_to_value_map = {
     'Generative': 3
 }
 
+###########################################################################
+# Validation
 
 # validator for unique type
 def validate_unique(field, value, error, db, search):
@@ -61,7 +67,8 @@ def validate_email(field, value, error):
     if not value.endswith("@neu.edu"):
         error(field, "Email is not an @neu email")
 
-
+###########################################################################
+# Event Schema
 schema = {
     'title': {
         'required': True,
@@ -184,7 +191,15 @@ schema = {
 
 schemaValidator = Validator(schema)
 
+###########################################################################
+# API Endpoints
 
+
+##
+# add an event with the post data
+# required to pass your authorization token
+# adds an id, attendance list, state, and owner to the incoming data
+# checks if the user is a faculty user
 @events.route('/addEvent/<auth_token>', methods=['POST'])
 def add_event(auth_token):
     data = json.loads(request.data)
@@ -203,6 +218,12 @@ def add_event(auth_token):
     return response.response_fail(objects=schemaValidator.errors)
 
 
+##
+# student endpoint to submit attendance to an event
+# must pass the event id and the authorization token
+# checks that the event is not yet closed or completed
+# adds the student to the attendance list for the event
+# also adds the event to the students list of events
 @events.route('/submitAttendance/<event_id>/<auth_token>', methods=['POST'])
 def submit_attendance(event_id, auth_token):
     user = User.get_user_from_db(token=auth_token)
@@ -217,6 +238,9 @@ def submit_attendance(event_id, auth_token):
     return response.response_success()
 
 
+##
+# allows faculty to change the event from verify attendance to unverified attendance and vice versa
+# authorization token must belong to the faculty owner of the event
 @events.route('/changeAttendance/<event_id>/<auth_token>', methods=['POST'])
 def change_attendance(event_id, auth_token):
     user = User.get_user_check_auth('faculty', token=auth_token)
@@ -230,6 +254,9 @@ def change_attendance(event_id, auth_token):
     return response.response_success()
 
 
+##
+# allows a faculty owner of an event to get the list of attendees for an event
+# list consists of the attendee's first and last name and their email
 @events.route('/getAttendance/<event_id>/<auth_token>', methods=['GET'])
 def get_attendance(event_id, auth_token):
     user = User.get_user_check_auth('faculty', token=auth_token)
@@ -244,6 +271,11 @@ def get_attendance(event_id, auth_token):
     return response.response_success(objects=attendance)
 
 
+##
+# allows a faculty to owner to distribute points to only those who attended the event
+# takes input from the post request which consists of a list of email addresses
+# the email addresses are the email addresses of each student that attended
+# the state of the event must be closed and the event must be set to verify attendance
 @events.route('/verifyAttendance/<event_id>/<auth_token>', methods=['POST'])
 def verify_attendance(event_id, auth_token):
     user = User.get_user_check_auth('faculty', token=auth_token)
@@ -288,6 +320,11 @@ def verify_attendance(event_id, auth_token):
     return response.response_success()
 
 
+##
+# allows a faculty owner to distribute the points to the student attendees
+# it checks that the event is closed and that verify attendance is not set
+# it does not take any input from the post body, it simply gives all those
+# said they attended the points
 @events.route('/distributePoints/<event_id>/<auth_token>', methods=['POST'])
 def distribute_points(event_id, auth_token):
     user = User.get_user_check_auth('faculty', token=auth_token)
@@ -331,12 +368,16 @@ def distribute_points(event_id, auth_token):
     return response.response_success()
 
 
+##
+# get all events in the system
 @events.route('/getAllEvents', methods=['GET'])
 def get_all_events():
     all_events = list(event_collection.find({}, {"_id": 0}))
     return response.response_success(objects=all_events)
 
 
+##
+# get all events for a faculty owner
 @events.route('/getMyEvents/<auth_token>', methods=['GET'])
 def get_my_events(auth_token):
     user = User.get_user_check_auth('faculty', token=auth_token)
@@ -347,12 +388,16 @@ def get_my_events(auth_token):
     return response.response_success(objects=all_events)
 
 
+##
+# gets all open events in the system
 @events.route('/getAllOpenEvents', methods=['GET'])
 def get_all_open_events():
     all_events = list(event_collection.find({"state": "open"}, {"_id": 0}))
     return response.response_success(objects=all_events)
 
 
+##
+# allows a faculty owner to set an event from over to closed
 @events.route('/closeEvent/<event_id>/<auth_token>', methods=['POST'])
 def close_event(event_id, auth_token):
     user = User.get_user_check_auth('faculty', token=auth_token)
@@ -367,6 +412,8 @@ def close_event(event_id, auth_token):
     return response.response_success()
 
 
+##
+# allows a faculty owner to set an event to over
 @events.route('/overEvent/<event_id>/<auth_token>', methods=['POST'])
 def over_event(event_id, auth_token):
     user = User.get_user_check_auth('faculty', token=auth_token)
