@@ -2,7 +2,7 @@ from app.database.db_connection import event_collection, skill_collection, user_
 from app.users.user_model import User
 from app.utils.msg_tools import ResponseTools as response
 import json
-from flask import Blueprint, request
+from flask import Blueprint, request, render_template
 from cerberus import Validator
 import datetime
 import uuid
@@ -29,6 +29,7 @@ level_to_value_map = {
 
 ###########################################################################
 # Validation
+
 
 # validator for unique type
 def validate_unique(field, value, error, db, search):
@@ -183,6 +184,10 @@ schema = {
         'type': 'boolean',
         'required': True
     },
+    'pointsPerSkill': {
+        'type': 'integer',
+        'required': True
+    },
     'owner': {
         'type': 'string',
         'required': True
@@ -195,6 +200,11 @@ schemaValidator = Validator(schema)
 # API Endpoints
 
 
+@events.route('/create', methods=['GET'])
+def add():
+    return render_template('addEvent.html')
+
+
 ##
 # add an event with the post data
 # required to pass your authorization token
@@ -202,14 +212,26 @@ schemaValidator = Validator(schema)
 # checks if the user is a faculty user
 @events.route('/addEvent/<auth_token>', methods=['POST'])
 def add_event(auth_token):
+    user = User.get_user_check_auth('faculty', token=auth_token)
+    if user is None:
+        return response.response_fail(msg="ERROR: You do not have permission to create an event")
+
+    # get the input data and set fields
     data = json.loads(request.data)
     data['id'] = str(uuid.uuid4())
     data['attendance'] = []
     data['state'] = 'open'
-    user = User.get_user_check_auth('faculty', token=auth_token)
-    if user is None:
-        return response.response_fail(msg="ERROR: You do not have permission to create an event")
     data['owner'] = user.email
+
+    # determine point amounts
+    event_level = data['engagementLevel']
+    level_value = level_to_value_map.get(event_level)
+    event_length = data['engagementLengthUnit']
+    length_value = length_to_value_map.get(event_length)
+    event_length_value = data['engagementLengthValue']
+    points_per_skill = length_value * event_length_value * level_value
+    data['pointsPerSkill'] = points_per_skill
+
     if schemaValidator.validate(data):
         mongo_id = event_collection.insert_one(data).inserted_id
         if mongo_id:
@@ -289,12 +311,7 @@ def verify_attendance(event_id, auth_token):
     if not event['checkAttendance']:
         return response.response_fail(msg="ERROR: attendance does not need to be verified")
 
-    event_level = event['engagementLevel']
-    level_value = level_to_value_map.get(event_level)
-    event_length = event['engagementLengthUnit']
-    length_value = length_to_value_map.get(event_length)
-    event_length_value = event['engagementLengthValue']
-    points_per_skill = length_value * event_length_value * level_value
+    points_per_skill = event['pointsPerSkill']
     skills = event['skills']
 
     data = json.loads(request.data)

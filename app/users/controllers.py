@@ -3,7 +3,7 @@ from app.database.db_connection import event_collection as events
 from app.database.db_connection import dimension_collection as dimensions
 from app.database.db_connection import skill_collection as skills
 import json
-from flask import Blueprint, request
+from flask import Blueprint, request, render_template
 from app.users.user_model import User
 from app.utils.validators import MyValidator
 from app.utils.msg_tools import ResponseTools as msg_tools
@@ -140,9 +140,9 @@ def add_user():
 @users.route('/verifyUser/<o_id>/<token>', methods=['GET'])
 def verify_user(o_id, token):
     if User.authorize(o_id, token):
-        return msg_tools.response_success(msg="Successfully authorized you!")
+        return render_template("successfulAuthorization.html")
     else:
-        return msg_tools.response_fail(msg="We could not authorize you. Please try again")
+        return render_template("failedAuthorization.html")
 
 
 # @users.route('/getUser/id/<id>/<auth_token>', methods=['GET'])    #add later if needed

@@ -1,0 +1,70 @@
+.nav-tabs > li, .nav-pills > li {
+    float:none;
+    display:inline-block;
+}
+
+.nav-tabs, .nav-pills {
+    text-align:center;
+}
+
+.nav-tabs > li > a {
+    margin-right: 2px;
+    line-height: 1.428571429;
+    border: 1px solid transparent;
+    border-radius: 4px 4px 0 0;
+    color:red;
+}
+
+.tabBody {
+    margin-left:20%;
+    margin-right: 20%;
+    text-align: center;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+td {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    width: 50%;
+}
+
+* {
+	margin: 0;
+}
+html {
+    overflow-y: scroll;
+}
+html, body {
+	height: 98%;
+}
+.wrapper {
+	min-height: 100%;
+	height: auto !important;
+	height: 100%;
+	margin: 0 auto -75px; /* the bottom margin is the negative value of the footer's height */
+}
+.footer, .push {
+	height: 75px; /* .push must be the same height as .footer */
+}
+.nav-tabs > li.active > a {
+    color: black;
+}
+img {
+    width:70%
+}
+.footer-icon{
+    width:25px;
+    height:25px;
+}
+
+.form-control {
+    margin-bottom: 15px;
+}
+
+h6 {
+    text-align: left;
+}
