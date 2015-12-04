@@ -10,6 +10,120 @@
 
     <script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
     <script src="https://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/js/bootstrap.js"></script>
+    <script>
+        function getSelectValues(select) {
+            var result = [];
+            var options = select && select.options;
+            var opt;
+
+            for (var i=0, len=options.length; i<len; i++) {
+                opt = options[i];
+
+                if (opt.selected) {
+                  result.push(opt.value);
+                }
+            }
+            return result;
+        }
+        function post() {
+            var token = "";
+            {% if auth_token %}
+                token = "{{ auth_token }}";
+            {% endif %}
+
+            var title = document.getElementById("title").value;
+            var format = document.getElementById("format").value;
+            var topics = document.getElementById("topics").value;
+            var descr = document.getElementById("desc").value;
+            var begin = document.getElementById("begin").value;
+            var end = document.getElementById("end").value;
+            var enagagement = document.getElementById("engagement").value;
+            var recurrence = document.getElementById("recurrence").value;
+            var location = document.getElementById("eventLocation").value;
+
+            var sponsor = document.getElementById("sponsorCollege").value;
+
+            var coop = document.getElementById("coop").value;
+            var standing = document.getElementById("academicStanding").value;
+            var resident = document.getElementById("residence").value;
+            var major = document.getElementById("major").value;
+
+            var other = document.getElementById("other").value;
+
+            var pocName = document.getElementById("pocName").value;
+            var pocNumber = document.getElementById("pocNumber").value;
+            var pocEmail = document.getElementById("pocEmail").value;
+            var outcomes = document.getElementById("outcomes").value;
+
+            var skills = document.getElementById("skills");
+            var level = document.getElementById("level").value;
+            var attendance = document.getElementById("attendance").checked;
+
+            var json  ={
+                "title": title,
+                "format": format,
+                "topics": topics.split(","),
+                "description": descr,
+                "begin": begin,
+                "end": end,
+                "engagementLength": enagagement,
+                "recurrence": recurrence,
+                "location": location,
+                "sponsoringDepartment": sponsor,
+                "pointOfContact": {
+                    "name": pocName,
+                    "number": pocNumber,
+                    "email": pocEmail
+                },
+                "outcomes": outcomes.split(","),
+                "skills": getSelectValues(skills),
+                "engagementLevel": level,
+                "coopFriendly": coop,
+                "academicStanding": standing,
+                "major": major,
+                "residentStatus": resident,
+                "otherRequirements": other.split(","),
+                "checkAttendance": attendance
+            };
+
+            postEventData(json, token);
+
+        }
+
+        function postEventData(json, token) {
+            var xmlhttp = new XMLHttpRequest();
+            var url = location.pathname.substr(0, location.pathname.indexOf('/')) + "/events/addEvent/" + token;
+
+            xmlhttp.onreadystatechange = function() {
+                if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                    var data =  JSON.parse(xmlhttp.responseText);
+                    console.log(data);
+                    if (data["response"]["code"] == 200) {
+                        window.location.assign(location.pathname.substr(0, location.pathname.indexOf('/')) + "/events/successfulAdd");
+                    } else {
+                        if(Object.keys(data["data"]).length == 0) {
+                            alert("Issue adding the event. Please try again");
+                        } else {
+                            var alertMessage = "";
+                            for (var o in data["data"]) {
+                                if (o == "pointOfContact") {
+                                    for (var y in data["data"]["pointOfContact"]) {
+                                        alertMessage += "There is an issue with " + y + " : " + data["data"]["pointOfContact"][y] + "\n";
+                                    }
+                                } else {
+                                    alertMessage += "There is an issue with " + o + " : " + data["data"][o] + "\n";
+                                }
+                            }
+                            alert(alertMessage);
+                        }
+                    }
+                }
+            };
+            xmlhttp.open("POST", url, true);
+            xmlhttp.setRequestHeader("Content-Type", "application/json");
+            xmlhttp.send(JSON.stringify(json));
+        }
+    </script>
 </head>
 <body>
     <div class="wrapper" style="text-align: center;">
@@ -22,54 +136,54 @@
             <select class="form-control" id="format">
                 <option selected disabled hidden value=''></option>
                 <option value="Event">Event</option>
-                <option value="nonSports">Non-Sports Program</option>
-                <option value="sports">Sports Program</option>
-                <option value="club">Club/Organization</option>
-                <option value="special">Special Project</option>
-                <option value="us">Co-Op (US)</option>
-                <option value="international">Co-Op (International)</option>
-                <option value="employment">Employment</option>
-                <option value="internship">Internship</option>
-                <option value="course">Course</option>
-                <option value="research">Research</option>
-                <option value="service">Service</option>
-                <option value="study">Study Abroad</option>
-                <option value="dialogue">Dialogue of Civilizations</option>
+                <option value="Non-Sports Program">Non-Sports Program</option>
+                <option value="Sports Program">Sports Program</option>
+                <option value="Club/Organization">Club/Organization</option>
+                <option value="Special Project">Special Project</option>
+                <option value="Co-Op (US)">Co-Op (US)</option>
+                <option value="Co-Op (International)">Co-Op (International)</option>
+                <option value="Employment">Employment</option>
+                <option value="Internship">Internship</option>
+                <option value="Course">Course</option>
+                <option value="Research">Research</option>
+                <option value="Service">Service</option>
+                <option value="Study Abroad">Study Abroad</option>
+                <option value="Dialogue of Civilization">Dialogue of Civilizations</option>
             </select>
-            <h6>Topics</h6>
+            <h6>Topics (Enter multiple by separating with commas)</h6>
             <input type="text" class="form-control" id="topics" placeholder="Topics">
             <h6>Description</h6>
             <input type="text" class="form-control" id="desc" placeholder="Description">
-            <h6>Begin Date</h6>
+            <h6>Begin Date (Format:mm/dd/yyyy)</h6>
             <input type="text" class="form-control" id="begin" placeholder="Begin Date">
-            <h6>End Date</h6>
+            <h6>End Date (Format:mm/dd/yyyy)</h6>
             <input type="text" class="form-control" id="end" placeholder="End Date">
             <h6>Approximate Length (in hours)</h6>
             <select class="form-control" id="engagement" style="width: 200px">
                 <option selected disabled hidden value=''></option>
-                <option value="1">1-2</option>
-                <option value="3">3-4</option>
-                <option value="5">5-8</option>
-                <option value="9">9-15</option>
-                <option value="16">16-29</option>
-                <option value="30">30-59</option>
-                <option value="60">60-89</option>
-                <option value="90">90-119</option>
-                <option value="120">120-179</option>
-                <option value="180">180-239</option>
-                <option value="240">240-299</option>
-                <option value="300">300-399</option>
-                <option value="400">over 400</option>
+                <option value="1-2">1-2</option>
+                <option value="3-4">3-4</option>
+                <option value="5-8">5-8</option>
+                <option value="9-15">9-15</option>
+                <option value="16-29">16-29</option>
+                <option value="30-59">30-59</option>
+                <option value="60-89">60-89</option>
+                <option value="90-119">90-119</option>
+                <option value="120-179">120-179</option>
+                <option value="180-239">180-239</option>
+                <option value="240-299">240-299</option>
+                <option value="300-399">300-399</option>
+                <option value="over 400">over 400</option>
             </select>
             <h6>Recurrence</h6>
             <select class="form-control" id="recurrence">
                 <option selected disabled hidden value=''></option>
-                <option value="none">None</option>
-                <option value="fall">Each Fall</option>
-                <option value="spring">Each Spring</option>
-                <option value="summer">Each Summer</option>
-                <option value="year">Each Year</option>
-                <option value="tbd">To Be Determined</option>
+                <option value="None">None</option>
+                <option value="Each Fall">Each Fall</option>
+                <option value="Each Spring">Each Spring</option>
+                <option value="Each Summer">Each Summer</option>
+                <option value="Each Year">Each Year</option>
+                <option value="TBD">TBD</option>
             </select>
 
             <h6>Location</h6>
@@ -86,41 +200,70 @@
 
             <h6>Co-Op Friendly?</h6>
             <select class="form-control" id="coop">
-
+                <option selected disabled hidden value=''></option>
+                <option value="Yes, local and non-local">Yes, local and non-local</option>
+                <option value="Yes, local only">Yes, local only</option>
+                <option value="No">No</option>
+                <option value="TBD">TBD</option>
             </select>
 
             <h6>Academic Standing</h6>
-            <select class="form-control" id="standing">
-
-            </select>
+            <input type="text" class="form-control" list="standing" id="academicStanding" placeholder="Academic Standing">
+            <datalist id="standing">
+                <option value="Any">
+                <option value="First Year">
+                <option value="Second Year">
+                <option value="Third Year">
+                <option value="Fourth Year">
+                <option value="Fifth Year">
+                <option value="Last Year or Semester">
+            </datalist>
 
             <h6>Major</h6>
             <input type="text" class="form-control" id="major" placeholder="Major">
 
             <h6>Resident Status</h6>
             <select class="form-control" id="residence">
-
+                <option selected disabled hidden value=''></option>
+                <option value="On-Campus">On-Campus</option>
+                <option value="Off-Campus">Off-Campus</option>
+                <option value="Either">Either</option>
             </select>
 
-            <h6>Other Requirements</h6>
+            <h6>Other Requirements (Enter multiple by separating with commas)</h6>
             <input type="text" class="form-control" id="other" placeholder="Other Requirements">
 
-            <h6>Sponsoring College</h6>
-            <input type="text" class="form-control" id="sponsorCollege" placeholder="Sponsoring College">
+            <h6>Sponsoring College/Department</h6>
+            <input type="text" class="form-control" id="sponsorCollege" placeholder="Sponsoring College/Department">
             <h6>Point of Contact</h6>
-            <input type="text" class="form-control" id="poc" placeholder="Point of Contact">
-            <h6>Outcomes</h6>
+            <input type="text" class="form-control" id="pocName" placeholder="Name">
+            <input type="text" class="form-control" id="pocNumber" placeholder="Number (6133733373)">
+            <input type="text" class="form-control" id="pocEmail" placeholder="Email (Must be @neu.edu)">
+            <h6>Outcomes (Enter multiple by separating with commas)</h6>
             <input type="text" class="form-control" id="outcomes" placeholder="Outcomes">
 
             <h6>Skills</h6>
             <select multiple class="form-control" id="skills">
-
+                {% for o in options %}
+                    <option value="{{  o.name }}">{{ o.name }}</option>
+                {% endfor %}
             </select>
 
             <h6>Engagement Level</h6>
             <select class="form-control" id="level">
-
+                <option selected disabled hidden value=''></option>
+                <option value="Passive">Passive</option>
+                <option value="Active">Active</option>
+                <option value="Generative">Generative</option>
             </select>
+
+            <label>
+              <input type="checkbox" id="attendance"> Would you like to verify attendance for this event?
+            </label>
+
+        <br>
+
+        <button type="button" onclick="post()" class="btn btn-default">Add Event!</button>
         </div>
     </div>
 </body>

@@ -226,7 +226,6 @@ class User:
                 else:
                     return user
             else:
-                # TODO put real parameter for suagr
                 if user.password == User.gen_pw_hash(password, user.email):
                     return user
         return None

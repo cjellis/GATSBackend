@@ -9,6 +9,7 @@ dimensions = Blueprint('dimensions', __name__, url_prefix='/dimensions')
 ###########################################################################
 # API Endpoints
 
+
 ##
 # get all dimensions in the Mongo DB
 @dimensions.route('/getDimensions', methods=['GET'])

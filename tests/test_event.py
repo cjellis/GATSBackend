@@ -81,7 +81,6 @@ class EventTestCase(unittest.TestCase):
         assert "Success" in rv.data
 
     def test_add_event(self):
-
         rv = self.app.post('/events/addEvent/{}'.format(self.token),
                            data=json.dumps({
     "title": "Northeastern University Growth Opportunities for Asian American Leaders (NUGOAL)",
@@ -97,8 +96,7 @@ class EventTestCase(unittest.TestCase):
                    " December 1, 2015.",
     "begin": "12/1/2015",
     "end": "3/1/2015",
-    "engagementLengthValue": 1,
-    "engagementLengthUnit": "Semester",
+    "engagementLength": "1-2",
     "recurrence": "Yearly",
     "location": "Boston Campus",
     "sponsoringDepartment": "Asian American Center",
@@ -114,10 +112,10 @@ class EventTestCase(unittest.TestCase):
     "skills": ["TestSkill"],
     "engagementLevel": "Active",
 
-    "coopFriendly": True,
-    "academicStanding": ["First Year", "Second Year"],
+    "coopFriendly": "Yes, local",
+    "academicStanding": "First Year",
     "major": "Any",
-    "residentStatus": "both",
+    "residentStatus": "Either",
     "otherRequirements": ["Identify as Asian American"],
     "checkAttendance": False
 }), content_type='application/json')
@@ -142,8 +140,7 @@ class EventTestCase(unittest.TestCase):
                    " December 1, 2015.",
     "begin": "12/1/2015",
     "end": "3/2015",
-    "engagementLengthValue": 1,
-    "engagementLengthUnit": "Semester",
+    "engagementLength": "1-2",
     "recurrence": "Yearly",
     "location": "Boston Campus",
     "sponsoringDepartment": "Asian American Center",
@@ -159,10 +156,10 @@ class EventTestCase(unittest.TestCase):
     "skills": ["TestSkill", "OtherTestSkill"],
     "engagementLevel": "Active",
 
-    "coopFriendly": True,
-    "academicStanding": ["First Year", "Second Year"],
+    "coopFriendly": "Yes, local only",
+    "academicStanding": "First Year",
     "major": "Any",
-    "residentStatus": "both",
+    "residentStatus": "Either",
     "otherRequirements": ["Identify as Asian American"],
     "checkAttendance": False
 }), content_type='application/json')
@@ -188,8 +185,7 @@ class EventTestCase(unittest.TestCase):
                    " December 1, 2015.",
     "begin": "12/1/2015",
     "end": "3/1/2015",
-    "engagementLengthValue": 1,
-    "engagementLengthUnit": "Semester",
+    "engagementLength": "1-2",
     "recurrence": "Yearly",
     "location": "Boston Campus",
     "sponsoringDepartment": "Asian American Center",
@@ -205,10 +201,10 @@ class EventTestCase(unittest.TestCase):
     "skills": ["TestSkill"],
     "engagementLevel": "Active",
 
-    "coopFriendly": True,
-    "academicStanding": ["First Year", "Second Year"],
+    "coopFriendly": "Yes, local",
+    "academicStanding": "First Year",
     "major": "Any",
-    "residentStatus": "both",
+    "residentStatus": "Either",
     "otherRequirements": ["Identify as Asian American"],
     "checkAttendance": False
 }), content_type='application/json')
@@ -243,8 +239,7 @@ class EventTestCase(unittest.TestCase):
                    " December 1, 2015.",
     "begin": "12/1/2015",
     "end": "3/1/2015",
-    "engagementLengthValue": 1,
-    "engagementLengthUnit": "Semester",
+    "engagementLength": "1-2",
     "recurrence": "Yearly",
     "location": "Boston Campus",
     "sponsoringDepartment": "Asian American Center",
@@ -260,10 +255,10 @@ class EventTestCase(unittest.TestCase):
     "skills": ["TestSkill"],
     "engagementLevel": "Active",
 
-    "coopFriendly": True,
-    "academicStanding": ["First Year", "Second Year"],
+    "coopFriendly": "Yes, local",
+    "academicStanding": "First Year",
     "major": "Any",
-    "residentStatus": "both",
+    "residentStatus": "Either",
     "otherRequirements": ["Identify as Asian American"],
     "checkAttendance": False
 }), content_type='application/json')
@@ -338,7 +333,7 @@ class EventTestCase(unittest.TestCase):
         assert len(dim) == 1
         d = dim[0]
         assert d['dimension'] == 'TestDimension'
-        assert d['value'] == 4
+        assert d['value'] == 1
 
     def test_event_point_distribution_with_verification(self):
         rv = self.app.post('/events/addEvent/{}'.format(self.token),
@@ -356,8 +351,7 @@ class EventTestCase(unittest.TestCase):
                    " December 1, 2015.",
     "begin": "12/1/2015",
     "end": "3/1/2015",
-    "engagementLengthValue": 1,
-    "engagementLengthUnit": "Semester",
+    "engagementLength": "1-2",
     "recurrence": "Yearly",
     "location": "Boston Campus",
     "sponsoringDepartment": "Asian American Center",
@@ -373,10 +367,10 @@ class EventTestCase(unittest.TestCase):
     "skills": ["TestSkill"],
     "engagementLevel": "Active",
 
-    "coopFriendly": True,
-    "academicStanding": ["First Year", "Second Year"],
+    "coopFriendly": "Yes, local",
+    "academicStanding": "First Year",
     "major": "Any",
-    "residentStatus": "both",
+    "residentStatus": "Either",
     "otherRequirements": ["Identify as Asian American"],
     "checkAttendance": True
 }), content_type='application/json')
@@ -431,7 +425,7 @@ class EventTestCase(unittest.TestCase):
         assert len(dim) == 1
         d = dim[0]
         assert d['dimension'] == 'TestDimension'
-        assert d['value'] == 4
+        assert d['value'] == 1
 
     def test_event_get_attendance(self):
         rv = self.app.post('/events/addEvent/{}'.format(self.token),
@@ -449,8 +443,7 @@ class EventTestCase(unittest.TestCase):
                    " December 1, 2015.",
     "begin": "12/1/2015",
     "end": "3/1/2015",
-    "engagementLengthValue": 1,
-    "engagementLengthUnit": "Semester",
+    "engagementLength": "1-2",
     "recurrence": "Yearly",
     "location": "Boston Campus",
     "sponsoringDepartment": "Asian American Center",
@@ -466,12 +459,12 @@ class EventTestCase(unittest.TestCase):
     "skills": ["TestSkill"],
     "engagementLevel": "Active",
 
-    "coopFriendly": True,
-    "academicStanding": ["First Year", "Second Year"],
+    "coopFriendly": "Yes, local",
+    "academicStanding": "First Year",
     "major": "Any",
-    "residentStatus": "both",
+    "residentStatus": "Either",
     "otherRequirements": ["Identify as Asian American"],
-    "checkAttendance": True
+    "checkAttendance": False
 }), content_type='application/json')
         assert "Success" in rv.data
 
@@ -518,8 +511,7 @@ class EventTestCase(unittest.TestCase):
                    " December 1, 2015.",
     "begin": "12/1/2015",
     "end": "3/1/2015",
-    "engagementLengthValue": 1,
-    "engagementLengthUnit": "Semester",
+    "engagementLength": "1-2",
     "recurrence": "Yearly",
     "location": "Boston Campus",
     "sponsoringDepartment": "Asian American Center",
@@ -535,12 +527,12 @@ class EventTestCase(unittest.TestCase):
     "skills": ["TestSkill"],
     "engagementLevel": "Active",
 
-    "coopFriendly": True,
-    "academicStanding": ["First Year", "Second Year"],
+    "coopFriendly": "Yes, local",
+    "academicStanding": "First Year",
     "major": "Any",
-    "residentStatus": "both",
+    "residentStatus": "Either",
     "otherRequirements": ["Identify as Asian American"],
-    "checkAttendance": True
+    "checkAttendance": False
 }), content_type='application/json')
         assert "Success" in rv.data
 
@@ -559,8 +551,7 @@ class EventTestCase(unittest.TestCase):
                    " December 1, 2015.",
     "begin": "12/1/2015",
     "end": "3/1/2015",
-    "engagementLengthValue": 1,
-    "engagementLengthUnit": "Semester",
+    "engagementLength": "1-2",
     "recurrence": "Yearly",
     "location": "Boston Campus",
     "sponsoringDepartment": "Asian American Center",
@@ -576,12 +567,12 @@ class EventTestCase(unittest.TestCase):
     "skills": ["TestSkill"],
     "engagementLevel": "Active",
 
-    "coopFriendly": True,
-    "academicStanding": ["First Year", "Second Year"],
+    "coopFriendly": "Yes, local",
+    "academicStanding": "First Year",
     "major": "Any",
-    "residentStatus": "both",
+    "residentStatus": "Either",
     "otherRequirements": ["Identify as Asian American"],
-    "checkAttendance": True
+    "checkAttendance": False
 }), content_type='application/json')
         assert "ERROR: You do not have permission to create an event" in rv.data
 
@@ -613,8 +604,7 @@ class EventTestCase(unittest.TestCase):
                    " December 1, 2015.",
     "begin": "12/1/2015",
     "end": "3/1/2015",
-    "engagementLengthValue": 1,
-    "engagementLengthUnit": "Semester",
+    "engagementLength": "1-2",
     "recurrence": "Yearly",
     "location": "Boston Campus",
     "sponsoringDepartment": "Asian American Center",
@@ -630,10 +620,10 @@ class EventTestCase(unittest.TestCase):
     "skills": ["TestSkill"],
     "engagementLevel": "Active",
 
-    "coopFriendly": True,
-    "academicStanding": ["First Year", "Second Year"],
+    "coopFriendly": "Yes, local",
+    "academicStanding": "First Year",
     "major": "Any",
-    "residentStatus": "both",
+    "residentStatus": "Either",
     "otherRequirements": ["Identify as Asian American"],
     "checkAttendance": False
 }), content_type='application/json')
@@ -676,7 +666,6 @@ class EventTestCase(unittest.TestCase):
         assert "ERROR: attendance needs to be verified" in rv.data
 
     def test_get_my_events(self):
-
         rv = self.app.post('/events/addEvent/{}'.format(self.token),
                            data=json.dumps({
     "title": "Northeastern University Growth Opportunities for Asian American Leaders (NUGOAL)",
@@ -692,8 +681,7 @@ class EventTestCase(unittest.TestCase):
                    " December 1, 2015.",
     "begin": "12/1/2015",
     "end": "3/1/2015",
-    "engagementLengthValue": 1,
-    "engagementLengthUnit": "Semester",
+    "engagementLength": "1-2",
     "recurrence": "Yearly",
     "location": "Boston Campus",
     "sponsoringDepartment": "Asian American Center",
@@ -709,10 +697,10 @@ class EventTestCase(unittest.TestCase):
     "skills": ["TestSkill"],
     "engagementLevel": "Active",
 
-    "coopFriendly": True,
-    "academicStanding": ["First Year", "Second Year"],
+    "coopFriendly": "Yes, local",
+    "academicStanding": "First Year",
     "major": "Any",
-    "residentStatus": "both",
+    "residentStatus": "Either",
     "otherRequirements": ["Identify as Asian American"],
     "checkAttendance": False
 }), content_type='application/json')

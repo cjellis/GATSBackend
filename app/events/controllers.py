@@ -14,11 +14,19 @@ events = Blueprint('events', __name__, url_prefix='/events')
 ###########################################################################
 # Global Constants
 length_to_value_map = {
-    'Day': 1,
-    'Week': 2,
-    'Month': 3,
-    'Semester': 4,
-    'Year': 5
+    "1-2": 1,
+    "3-4": 2,
+    "5-8": 3,
+    "9-15": 4,
+    "16-29": 5,
+    "30-59": 6,
+    "60-89": 7,
+    "90-119": 8,
+    "120-179": 9,
+    "180-239": 10,
+    "240-299": 11,
+    "300-399": 12
+
 }
 
 level_to_value_map = {
@@ -65,7 +73,7 @@ def validate_phone_number(field, value, error):
 
 
 def validate_email(field, value, error):
-    if not value.endswith("@neu.edu"):
+    if "@neu.edu" not in value:
         error(field, "Email is not an @neu email")
 
 ###########################################################################
@@ -101,14 +109,9 @@ schema = {
         'type': 'string',
         'validator': validate_date
     },
-    'engagementLengthValue': {
+    'engagementLength': {
         'required': True,
-        'type': 'integer'
-    },
-    'engagementLengthUnit': {
-        'required': True,
-        'type': 'string',
-        'allowed': ['Day', 'Week', 'Month', 'Semester', 'Year']
+        'type': 'string'
     },
     'recurrence': {
         'required': True,
@@ -149,18 +152,17 @@ schema = {
     },
 
     'coopFriendly': {
-        'type': 'boolean'
+        'type': 'string'
     },
     'academicStanding': {
-        'type': 'list',
-        'schema': {'type': 'string'}
+        'type': 'string'
     },
     'major': {
         'type': 'string'
     },
     'residentStatus': {
         'type': 'string',
-        'allowed': ['onCampus', 'offCampus', 'both']
+        'allowed': ['On-Campus', 'Off-Campus', 'Either']
     },
     'otherRequirements': {
         'type': 'list',
@@ -185,8 +187,7 @@ schema = {
         'required': True
     },
     'pointsPerSkill': {
-        'type': 'integer',
-        'required': True
+        'type': 'integer'
     },
     'owner': {
         'type': 'string',
@@ -201,8 +202,26 @@ schemaValidator = Validator(schema)
 
 
 @events.route('/create', methods=['GET'])
-def add():
-    return render_template('addEvent.html')
+@events.route('/create/<email>/<password>', methods=['GET'])
+def add(email=None, password=None):
+    if email is None or password is None:
+        return render_template("login.html")
+    else:
+        user = User.get_user_if_auth(email=email, password=password)
+        if user is None:
+                return render_template("failedLogin.html", error="Unknown email/password. Please try again!")
+        user = User.get_user_check_auth('faculty', user.token)
+        if user is None:
+            return render_template("failedLogin.html", error="Unauthorized to create events")
+        else:
+            all_skills = list(skill_collection.find({}, {"_id": 0}))
+            all_skills = sorted(all_skills, key=lambda k: k['name'])
+            return render_template('addEvent.html', options=all_skills, auth_token=str(user.token))
+
+
+@events.route('/successfulAdd', methods=['GET'])
+def successfuladd():
+    return render_template('successfulAdd.html')
 
 
 ##
@@ -223,16 +242,14 @@ def add_event(auth_token):
     data['state'] = 'open'
     data['owner'] = user.email
 
-    # determine point amounts
-    event_level = data['engagementLevel']
-    level_value = level_to_value_map.get(event_level)
-    event_length = data['engagementLengthUnit']
-    length_value = length_to_value_map.get(event_length)
-    event_length_value = data['engagementLengthValue']
-    points_per_skill = length_value * event_length_value * level_value
-    data['pointsPerSkill'] = points_per_skill
-
     if schemaValidator.validate(data):
+        # determine point amounts
+        event_level = data['engagementLevel']
+        level_value = level_to_value_map.get(event_level)
+        event_length_value = data['engagementLength']
+        length_value = length_to_value_map.get(event_length_value)
+        points_per_skill = length_value * level_value
+        data['pointsPerSkill'] = points_per_skill
         mongo_id = event_collection.insert_one(data).inserted_id
         if mongo_id:
             return response.response_success()
@@ -357,10 +374,9 @@ def distribute_points(event_id, auth_token):
     attendance = event['attendance']
     event_level = event['engagementLevel']
     level_value = level_to_value_map.get(event_level)
-    event_length = event['engagementLengthUnit']
-    length_value = length_to_value_map.get(event_length)
-    event_length_value = event['engagementLengthValue']
-    points_per_skill = length_value * event_length_value * level_value
+    event_length_value = event['engagementLength']
+    length_value = length_to_value_map.get(event_length_value)
+    points_per_skill = length_value * level_value
     skills = event['skills']
 
     for person in attendance:
@@ -389,7 +405,7 @@ def distribute_points(event_id, auth_token):
 # get all events in the system
 @events.route('/getAllEvents', methods=['GET'])
 def get_all_events():
-    all_events = list(event_collection.find({}, {"_id": 0}))
+    all_events = list(event_collection.find({}, {"_id": 0, "attendance": 0, "owner": 0, "checkAttendance": 0}))
     return response.response_success(objects=all_events)
 
 
@@ -409,7 +425,7 @@ def get_my_events(auth_token):
 # gets all open events in the system
 @events.route('/getAllOpenEvents', methods=['GET'])
 def get_all_open_events():
-    all_events = list(event_collection.find({"state": "open"}, {"_id": 0}))
+    all_events = list(event_collection.find({"state": "open"}, {"_id": 0, "attendance": 0, "owner": 0, "checkAttendance": 0}))
     return response.response_success(objects=all_events)
 
 
