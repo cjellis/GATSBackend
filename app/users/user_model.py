@@ -93,13 +93,18 @@ class User:
     
     def send_verify(self, o_id):
         hash_token = User.gen_token_hash(self.token)
-        msg_body = "http://{0}:{1}/users/verifyUser/{2}/{3}".format(app.app.config['HOST'],
+        html_body = "Please verify your account by clicking the link below!<br>"
+        msg_body = "<a href='http://{0}:{1}/users/verifyUser/{2}/{3}'>Click Here!</a><br><br>".format(app.app.config['HOST'],
+                                                                   app.app.config['PORT'],
+                                                                   o_id, hash_token)
+        rest = "If the link above does not work, copy and paste the following link into your browser:<br>"\
+            "http://{0}:{1}/users/verifyUser/{2}/{3}'".format(app.app.config['HOST'],
                                                                    app.app.config['PORT'],
                                                                    o_id, hash_token)
         msg = Message("Verfy with GATS",
                       sender=('GATS', app.app.config['MAIL_USERNAME']),
                       recipients=[self.email])
-        msg.body = msg_body
+        msg.html = html_body + msg_body + rest
         if not app.app.config['TESTING']:
             app.mail.send(msg)
     
@@ -115,7 +120,7 @@ class User:
             user_collection.result = user_collection.update_one(
                 {'_id': ObjectId(self.o_id)},
                 {
-                    '$set': {'token': self.token, 'tokenTTL': DEFAULT_TTL}  # increase as necessary
+                    '$set': {'token': self.token, 'tokenTTL': User.DEFAULT_TTL}  # increase as necessary
                 })
         else:
             self.update_ttl()
@@ -143,7 +148,7 @@ class User:
             user_collection.result = user_collection.update_one(
                 {'_id': ObjectId(o_id)},
                 {
-                    '$set': {'is_auth': True, 'tokenTTL': DEFAULT_TTL}  # increase as nesseceary
+                    '$set': {'is_auth': True, 'tokenTTL': User.DEFAULT_TTL}  # increase as nesseceary
                 })
             return True
         else:
@@ -221,7 +226,6 @@ class User:
                 else:
                     return user
             else:
-                # TODO put real parameter for suagr
                 if user.password == User.gen_pw_hash(password, user.email):
                     return user
         return None

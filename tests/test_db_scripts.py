@@ -81,6 +81,6 @@ class DBTestCase(unittest.TestCase):
 
         rv = self.app.get('/skills/getSkills')
         obj = json.loads(rv.data)
-        assert len(obj["data"]) is 8
+        assert len(obj["data"]) is 50
 
 

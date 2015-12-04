@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Failure!</title>
+</head>
+<body>
+    <h2 style="text-align: center;">Sorry! There was an issue logging you in!</h2>
+    {% if error %}
+    <h2 style="text-align: center;">{{ error }}</h2>
+    {% endif %}
+</body>
+</html>

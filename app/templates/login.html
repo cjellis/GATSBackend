@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+
+    <link href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" rel="stylesheet">
+    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/index.css') }}">
+
+
+    <script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
+    <script src="https://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/js/bootstrap.js"></script>
+    <script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/md5.js"></script>
+
+    <script>
+        function login() {
+            var email = document.getElementById("email").value;
+            var password = document.getElementById("password").value;
+            window.location.assign(location.pathname.substr(0, location.pathname.indexOf('/')) + "/events/create/" + email + "/" + CryptoJS.MD5(password));
+        }
+    </script>
+
+</head>
+<body>
+    <div class="wrapper" style="text-align: center;">
+        <h4>Please Login Below</h4>
+        <div style="margin-left:10%; margin-right: 10%; ">
+            <h6>Email</h6>
+            <input type="text" id="email" class="form-control" placeholder="Email">
+            <h6>Password</h6>
+            <input type="password" id="password" class="form-control" placeholder="Password">
+            <br>
+            <button type="button" onclick="login()" class="btn btn-default">Login!</button>
+        </div>
+    </div>
+</body>
+</html>
