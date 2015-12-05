@@ -267,7 +267,7 @@ def successfuladd():
 # checks if the user is a faculty user
 @events.route('/addEvent/<auth_token>', methods=['POST'])
 def add_event(auth_token):
-    user = User.get_user_check_auth('faculty', token=auth_token)
+    user = User.get_user_check_auth('faculty', token=auth_token, is_post=True)
     if user is None:
         return response.response_fail(msg="ERROR: You do not have permission to create an event")
 
@@ -296,7 +296,7 @@ def add_event(auth_token):
 # also adds the event to the students list of events
 @events.route('/submitAttendance/<event_id>/<auth_token>', methods=['POST'])
 def submit_attendance(event_id, auth_token):
-    user = User.get_user_from_db(token=auth_token)
+    user = User.get_user_from_db(token=auth_token, is_post=True)
     event = event_collection.find_one({"id": event_id}, {"_id": 0})
     if event['state'] == 'closed' or event['state'] == 'completed':
         return response.response_fail(msg="ERROR: Event is already closed")
@@ -313,7 +313,7 @@ def submit_attendance(event_id, auth_token):
 # authorization token must belong to the faculty owner of the event
 @events.route('/changeAttendance/<event_id>/<auth_token>', methods=['POST'])
 def change_attendance(event_id, auth_token):
-    user = User.get_user_check_auth('faculty', token=auth_token)
+    user = User.get_user_check_auth('faculty', token=auth_token, is_post=True)
     if user is None:
         return response.response_fail(msg="ERROR: You do not have permission to alter an event")
     event = event_collection.find_one({"id": event_id}, {"_id": 0})
@@ -348,7 +348,7 @@ def get_attendance(event_id, auth_token):
 # the state of the event must be closed and the event must be set to verify attendance
 @events.route('/verifyAttendance/<event_id>/<auth_token>', methods=['POST'])
 def verify_attendance(event_id, auth_token):
-    user = User.get_user_check_auth('faculty', token=auth_token)
+    user = User.get_user_check_auth('faculty', token=auth_token, is_post=True)
     if user is None:
         return response.response_fail(msg="ERROR: You do not have permission to alter an event")
     event = event_collection.find_one({"id": event_id}, {"_id": 0})
@@ -392,7 +392,7 @@ def verify_attendance(event_id, auth_token):
 # said they attended the points
 @events.route('/distributePoints/<event_id>/<auth_token>', methods=['POST'])
 def distribute_points(event_id, auth_token):
-    user = User.get_user_check_auth('faculty', token=auth_token)
+    user = User.get_user_check_auth('faculty', token=auth_token, is_post=True)
     if user is None:
         return response.response_fail(msg="ERROR: You do not have permission to alter an event")
     event = event_collection.find_one({"id": event_id}, {"_id": 0})
@@ -460,7 +460,7 @@ def get_all_open_events():
 # allows a faculty owner to set an event from over to closed
 @events.route('/closeEvent/<event_id>/<auth_token>', methods=['POST'])
 def close_event(event_id, auth_token):
-    user = User.get_user_check_auth('faculty', token=auth_token)
+    user = User.get_user_check_auth('faculty', token=auth_token, is_post=True)
     if user is None:
         return response.response_fail(msg="ERROR: You do not have permission to close an event")
     event = event_collection.find_one({"id": event_id}, {"_id": 0})
@@ -476,7 +476,7 @@ def close_event(event_id, auth_token):
 # allows a faculty owner to set an event to over
 @events.route('/overEvent/<event_id>/<auth_token>', methods=['POST'])
 def over_event(event_id, auth_token):
-    user = User.get_user_check_auth('faculty', token=auth_token)
+    user = User.get_user_check_auth('faculty', token=auth_token, is_post=True)
     if user is None:
         return response.response_fail(msg="ERROR: You do not have permission to set an event to over")
     event = event_collection.find_one({"id": event_id}, {"_id": 0})
