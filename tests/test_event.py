@@ -11,6 +11,7 @@ class EventTestCase(unittest.TestCase):
     resp = None
     test_user = None
 
+    # runs before each test method
     def setUp(self):
         app.app.config['TESTING'] = True
         client = MongoClient("mongodb://admin:admin@ds049864.mongolab.com:49864/activitytracker")
@@ -80,6 +81,7 @@ class EventTestCase(unittest.TestCase):
                            content_type='application/json')
         assert "Success" in rv.data
 
+    # tests adding an event with the given information
     def test_add_event(self):
         rv = self.app.post('/events/addEvent/{}'.format(self.token),
                            data=json.dumps({
@@ -169,6 +171,7 @@ class EventTestCase(unittest.TestCase):
         assert "Phone Number not long enough" in rv.data
         assert "Email is not an @neu email" in rv.data
 
+    # tests the event attendance methods
     def test_event_attendance(self):
         rv = self.app.post('/events/addEvent/{}'.format(self.token),
                            data=json.dumps({
@@ -223,6 +226,7 @@ class EventTestCase(unittest.TestCase):
         rv = self.app.post('/events/submitAttendance/{}/{}'.format(event_id, self.token_student))
         assert "Success" in rv.data
 
+    # tests distributing the event points
     def test_event_point_distribution(self):
         rv = self.app.post('/events/addEvent/{}'.format(self.token),
                            data=json.dumps({
@@ -335,6 +339,7 @@ class EventTestCase(unittest.TestCase):
         assert d['dimension'] == 'TestDimension'
         assert d['value'] == 1
 
+    # tests distributing points with verification
     def test_event_point_distribution_with_verification(self):
         rv = self.app.post('/events/addEvent/{}'.format(self.token),
                            data=json.dumps({
@@ -427,6 +432,7 @@ class EventTestCase(unittest.TestCase):
         assert d['dimension'] == 'TestDimension'
         assert d['value'] == 1
 
+    # tests getting the event attendance
     def test_event_get_attendance(self):
         rv = self.app.post('/events/addEvent/{}'.format(self.token),
                            data=json.dumps({
@@ -495,6 +501,7 @@ class EventTestCase(unittest.TestCase):
         data = json.loads(rv.data)
         assert len(data["data"]) == 1
 
+    # test submitting attendance after its closed
     def test_event_submit_attendance_late(self):
         rv = self.app.post('/events/addEvent/{}'.format(self.token),
                            data=json.dumps({
@@ -588,6 +595,7 @@ class EventTestCase(unittest.TestCase):
         rv = self.app.post('/events/submitAttendance/{}/{}'.format(event_id, self.token_student))
         assert "ERROR: Event is already closed" in rv.data
 
+    # test changing event attendance
     def test_event_change_attendance(self):
         rv = self.app.post('/events/addEvent/{}'.format(self.token),
                            data=json.dumps({

@@ -6,6 +6,7 @@ from pymongo import MongoClient
 
 class AdminTestCase(unittest.TestCase):
 
+    # runs before each test method
     def setUp(self):
         app.app.config['TESTING'] = True
         client = MongoClient("mongodb://admin:admin@ds049864.mongolab.com:49864/activitytracker")
@@ -49,6 +50,7 @@ class AdminTestCase(unittest.TestCase):
                        content_type='application/json')
         self.token = json.loads(rv.data)['data']['user']['token']
 
+    # tests adding a dimension
     def test_add_dimension(self):
         rv = self.app.post('/administrator/addDimension/{}'.format(self.token),
                            data=json.dumps(dict(name="TestDimension")),
@@ -65,6 +67,7 @@ class AdminTestCase(unittest.TestCase):
                            content_type='application/json')
         assert "Dimension already exists with given name" in rv.data
 
+    # tests adding a skill
     def test_add_skill(self):
         rv = self.app.post('/administrator/addDimension/ADMIN_TOKEN',
                            data=json.dumps(dict(name="TestDimension")),

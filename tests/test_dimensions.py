@@ -6,6 +6,7 @@ from pymongo import MongoClient
 
 class DimensionsTestCase(unittest.TestCase):
 
+    # runs before each test method
     def setUp(self):
         app.app.config['TESTING'] = True
         client = MongoClient("mongodb://admin:admin@ds049864.mongolab.com:49864/activitytracker")
@@ -38,6 +39,7 @@ class DimensionsTestCase(unittest.TestCase):
 
         self.app = app.app.test_client()
 
+    # tests getting all of the dimensions from the system
     def test_get_dimension(self):
         rv = self.app.post('/administrator/addDimension/ADMIN_TOKEN',
                            data=json.dumps(dict(name="TestDimension")),

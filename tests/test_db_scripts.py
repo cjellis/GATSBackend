@@ -7,11 +7,13 @@ from DBScripts import SetUpDb, ClearMongo
 
 class DBTestCase(unittest.TestCase):
 
+    # runs before each test method
     def setUp(self):
         app.app.config['TESTING'] = True
         ClearMongo.clear_mongo()
         self.app = app.app.test_client()
 
+    # runs a test to clear out mongo and make sure its empty
     def test_clear_mongo(self):
         client = MongoClient("mongodb://admin:admin@ds049864.mongolab.com:49864/activitytracker")
         db = client.activitytracker
@@ -73,6 +75,7 @@ class DBTestCase(unittest.TestCase):
         obj = json.loads(rv.data)
         assert len(obj["data"]) is 0
 
+    # tests the add script and ensures data is there
     def test_add_data(self):
         SetUpDb.add_data()
         rv = self.app.get('/dimensions/getDimensions')

@@ -2,6 +2,9 @@ import csv
 import os
 
 
+##
+# prints out all of the calls that would need to be amde to Mongo in order
+# to insert all of the skills in skills.csv
 def create_text():
     with open(os.path.join(os.path.dirname(__file__), 'skills.csv'), 'rU') as csvfile:
         reader = csv.reader(csvfile, delimiter=",")

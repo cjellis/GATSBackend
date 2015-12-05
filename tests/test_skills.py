@@ -6,6 +6,7 @@ from pymongo import MongoClient
 
 class SkillsTestCase(unittest.TestCase):
 
+    # runs before each test
     def setUp(self):
         app.app.config['TESTING'] = True
         client = MongoClient("mongodb://admin:admin@ds049864.mongolab.com:49864/activitytracker")
@@ -38,6 +39,7 @@ class SkillsTestCase(unittest.TestCase):
 
         self.app = app.app.test_client()
 
+    # tests getting all of the skills
     def test_get_skills(self):
         rv = self.app.post('/administrator/addDimension/ADMIN_TOKEN',
                            data=json.dumps(dict(name="TestDimension")),

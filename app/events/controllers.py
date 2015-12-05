@@ -210,6 +210,9 @@ schemaValidator = Validator(schema)
 
 ##########################################################################
 # Local Helper Function
+
+##
+# calculates how many points should be awarded for each skill for an event
 def get_points_per_skill(event):
     event_level = event['engagementLevel']
     level_value = level_to_value_map.get(event_level)
@@ -218,6 +221,8 @@ def get_points_per_skill(event):
     return length_value * level_value
 
 
+##
+# calculates how many points should be given per dimension for an event
 def get_points_per_dimension(event):
     all_dimensions = list(dimension_collection.find({}, {"_id": 0}))
     dimension_to_value_map = {}
@@ -237,6 +242,10 @@ def get_points_per_dimension(event):
 # API Endpoints
 
 
+##
+# allows a faculty user to create an event in the system
+# the first endpoint returns a login page
+# the second returns an error page or the page to add the event information
 @events.route('/create', methods=['GET'])
 @events.route('/create/<email>/<password>', methods=['GET'])
 def add(email=None, password=None):
@@ -255,6 +264,8 @@ def add(email=None, password=None):
             return render_template('addEvent.html', options=all_skills, auth_token=str(user.token))
 
 
+##
+# renders a template when an event is successfully added to the system
 @events.route('/successfulAdd', methods=['GET'])
 def successfuladd():
     return render_template('successfulAdd.html')

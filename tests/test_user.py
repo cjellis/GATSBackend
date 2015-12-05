@@ -6,6 +6,7 @@ from pymongo import MongoClient
 
 class AppTestCase(unittest.TestCase):
 
+    # runs before each test
     def setUp(self):
         app.app.config['TESTING'] = True
         client = MongoClient("mongodb://admin:admin@ds049864.mongolab.com:49864/activitytracker")
@@ -53,7 +54,8 @@ class AppTestCase(unittest.TestCase):
         })
         
         self.app = app.app.test_client()
-        
+
+    # tests adding a user to the system
     def test_add_user(self):
         test_user = {
                         "firstname": "John",
@@ -76,6 +78,7 @@ class AppTestCase(unittest.TestCase):
         data = json.loads(rv.data)
         assert "is not unique" in data['data']['email']
 
+    # tests getting a user from the system
     def test_get_user(self):
         test_user = {
             "firstname": "John",
