@@ -40,7 +40,7 @@ MAIL_PASSWORD = 'tbtsc2015'
 
 # Salt for password hashing
 # WARNING changing this field will result in all passwords
-# previously saved to be unsuable
+# previously saved to be unusable
 # this salt was generated with uuid.uuid4().hex
 SALT = 'd8f473b018b447e9ae6f74786540131d'
 

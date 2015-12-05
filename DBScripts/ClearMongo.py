@@ -1,6 +1,8 @@
 from pymongo import MongoClient
 
 
+##
+# clears out all of the collections in Mongo
 def clear_mongo():
     client = MongoClient("mongodb://admin:admin@ds049864.mongolab.com:49864/activitytracker")
     db = client.activitytracker
