@@ -1,7 +1,6 @@
 from pymongo import MongoClient
 import config
 
-
 ##
 # creates a connection to the remote Mongo DB
 # and sets up variables for each collection we use

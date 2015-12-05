@@ -1,10 +1,11 @@
 from pymongo import MongoClient
+import config
 
 
 ##
 # clears out all of the collections in Mongo
 def clear_mongo():
-    client = MongoClient("mongodb://admin:admin@ds049864.mongolab.com:49864/activitytracker")
+    client = MongoClient(config.MONGODB_URL)
     db = client.activitytracker
     event_collection = db.Events
     skill_collection = db.Skills
