@@ -1,4 +1,4 @@
-from app.database.db_connection import event_collection, skill_collection, user_collection
+from app.database.db_connection import event_collection, skill_collection, user_collection, dimension_collection
 from app.users.user_model import User
 from app.utils.msg_tools import ResponseTools as response
 import json
@@ -189,6 +189,16 @@ schema = {
     'pointsPerSkill': {
         'type': 'integer'
     },
+    'pointsPerDimension': {
+        'type': 'list',
+        'schema': {
+            'type': 'dict',
+            'schema': {
+                'dimension': {'type': 'string'},
+                'value': {'type': 'integer'}
+            }
+        }
+    },
     'owner': {
         'type': 'string',
         'required': True
@@ -196,6 +206,32 @@ schema = {
 }
 
 schemaValidator = Validator(schema)
+
+
+##########################################################################
+# Local Helper Function
+def get_points_per_skill(event):
+    event_level = event['engagementLevel']
+    level_value = level_to_value_map.get(event_level)
+    event_length_value = event['engagementLength']
+    length_value = length_to_value_map.get(event_length_value)
+    return length_value * level_value
+
+
+def get_points_per_dimension(event):
+    all_dimensions = list(dimension_collection.find({}, {"_id": 0}))
+    dimension_to_value_map = {}
+    for d in all_dimensions:
+        dimension_to_value_map[d["name"]] = 0
+    points = get_points_per_skill(event)
+    for s in event['skills']:
+        skill_dimensions = list(skill_collection.find_one({"name": s})['dimensions'])
+        for dim in skill_dimensions:
+            dimension_to_value_map[dim] += points
+    dimension_array = []
+    for key, value in dimension_to_value_map.iteritems():
+        dimension_array.append({"dimension": key, "value": value})
+    return dimension_array
 
 ###########################################################################
 # API Endpoints
@@ -243,13 +279,8 @@ def add_event(auth_token):
     data['owner'] = user.email
 
     if schemaValidator.validate(data):
-        # determine point amounts
-        event_level = data['engagementLevel']
-        level_value = level_to_value_map.get(event_level)
-        event_length_value = data['engagementLength']
-        length_value = length_to_value_map.get(event_length_value)
-        points_per_skill = length_value * level_value
-        data['pointsPerSkill'] = points_per_skill
+        data['pointsPerSkill'] = get_points_per_skill(data)
+        data['pointsPerDimension'] = get_points_per_dimension(data)
         mongo_id = event_collection.insert_one(data).inserted_id
         if mongo_id:
             return response.response_success()
@@ -330,6 +361,7 @@ def verify_attendance(event_id, auth_token):
 
     points_per_skill = event['pointsPerSkill']
     skills = event['skills']
+    points_per_dimension = event["pointsPerDimension"]
 
     data = json.loads(request.data)
     attendees = data['attendees']
@@ -339,13 +371,12 @@ def verify_attendance(event_id, auth_token):
             for user_skill in user.skills:
                 if user_skill['skill'] == skill:
                     user_skill['value'] += points_per_skill
-                    skill_dimensions = list(skill_collection.find_one({"name": skill})['dimensions'])
-                    for dimension in skill_dimensions:
-                        for user_dimension in user.dimensions:
-                            if user_dimension['dimension'] == dimension:
-                                user_dimension['value'] += points_per_skill
-                                break
-            break
+                    break
+        for dim in points_per_dimension:
+            for user_dim in user.dimensions:
+                if user_dim['dimension'] == dim["dimension"]:
+                    user_dim['value'] += dim["value"]
+                    break
         user_collection.update_one({"email": email},
                                    {"$set":
                                     {'skills': user.skills, 'dimensions': user.dimensions}})
@@ -372,12 +403,9 @@ def distribute_points(event_id, auth_token):
     if event['checkAttendance']:
         return response.response_fail(msg="ERROR: attendance needs to be verified")
     attendance = event['attendance']
-    event_level = event['engagementLevel']
-    level_value = level_to_value_map.get(event_level)
-    event_length_value = event['engagementLength']
-    length_value = length_to_value_map.get(event_length_value)
-    points_per_skill = length_value * level_value
+    points_per_skill = event["pointsPerSkill"]
     skills = event['skills']
+    points_per_dimension = event["pointsPerDimension"]
 
     for person in attendance:
         email = person["email"]
@@ -386,13 +414,12 @@ def distribute_points(event_id, auth_token):
             for user_skill in user.skills:
                 if user_skill['skill'] == skill:
                     user_skill['value'] += points_per_skill
-                    skill_dimensions = list(skill_collection.find_one({"name": skill})['dimensions'])
-                    for dimension in skill_dimensions:
-                        for user_dimension in user.dimensions:
-                            if user_dimension['dimension'] == dimension:
-                                user_dimension['value'] += points_per_skill
-                                break
-            break
+                    break
+        for dim in points_per_dimension:
+            for user_dim in user.dimensions:
+                if user_dim['dimension'] == dim["dimension"]:
+                    user_dim['value'] += dim["value"]
+                    break
         user_collection.update_one({"email": email},
                                    {"$set":
                                     {'skills': user.skills, 'dimensions': user.dimensions}})
