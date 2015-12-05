@@ -1,8 +1,9 @@
 from pymongo import MongoClient
+import config
 
 # creates a connection to the remote Mongo DB
 # and sets up variables for each collection we use
-client = MongoClient("mongodb://admin:admin@ds049864.mongolab.com:49864/activitytracker")
+client = MongoClient(config.MONGODB_URL)
 db = client.activitytracker
 event_collection = db.Events
 skill_collection = db.Skills

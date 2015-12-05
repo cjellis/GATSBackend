@@ -3,7 +3,6 @@ from app.database.db_connection import user_collection, skill_collection, dimens
 from bson import ObjectId
 from flask.ext.mail import Message
 
-
 class User:
    
     DEFAULT_TTL = 500
