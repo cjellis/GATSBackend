@@ -1,6 +1,8 @@
 from pymongo import MongoClient
 
 
+##
+# Adds the dimensions, skills, and one administrator
 def add_data():
     client = MongoClient("mongodb://admin:admin@ds049864.mongolab.com:49864/activitytracker")
     db = client.activitytracker

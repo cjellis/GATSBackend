@@ -1,4 +1,4 @@
-# Run a test server.
+# Run a server
 from app import app
 import os
 

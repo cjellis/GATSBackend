@@ -1,4 +1,5 @@
 # Import flask and template operators
+import app
 from flask import Flask
 from flask.ext.mail import Mail
 # Import a module / component using its blueprint handler variable
