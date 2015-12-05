@@ -9,7 +9,7 @@ class AdminTestCase(unittest.TestCase):
     # runs before each test method
     def setUp(self):
         app.app.config['TESTING'] = True
-        client = MongoClient("mongodb://admin:admin@ds049864.mongolab.com:49864/activitytracker")
+        client = MongoClient(app.app.config['MONGODB_URL'])
         db = client.activitytracker
         event_collection = db.Events
         skill_collection = db.Skills

@@ -15,7 +15,7 @@ class DBTestCase(unittest.TestCase):
 
     # runs a test to clear out mongo and make sure its empty
     def test_clear_mongo(self):
-        client = MongoClient("mongodb://admin:admin@ds049864.mongolab.com:49864/activitytracker")
+        client = MongoClient(app.app.config['MONGODB_URL'])
         db = client.activitytracker
         user_collection = db.Users
         user_collection.insert_one({

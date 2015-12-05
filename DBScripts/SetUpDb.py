@@ -1,10 +1,14 @@
 from pymongo import MongoClient
-
+import sys
+import os.path
+sys.path.append(
+    os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
+import config
 
 ##
 # Adds the dimensions, skills, and one administrator
 def add_data():
-    client = MongoClient("mongodb://admin:admin@ds049864.mongolab.com:49864/activitytracker")
+    client = MongoClient(config.MONGODB_URL)
     db = client.activitytracker
     skill_collection = db.Skills
     dimension_collection = db.Dimensions
