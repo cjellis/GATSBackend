@@ -3,10 +3,12 @@ from app.database.db_connection import user_collection, skill_collection, dimens
 from bson import ObjectId
 from flask.ext.mail import Message
 
+# user class for all users in the system
 class User:
    
     DEFAULT_TTL = 500
 
+    # constructor to create a user
     def __init__(self, firstname, lastname, email, 
                  password, year=None, major=None, token=None,
                  tokenTTL=50, is_auth=False,
@@ -32,15 +34,18 @@ class User:
         self.year = year
         self.major = major
         if len(skills) == 0:
+            # pulls skills from DB and assign them to the user
             self.skills = User.set_skills()
         else:
             self.skills = skills
         if len(dimensions) == 0:
+            # pull the dimensions from the DB and assign them to the user
             self.dimensions = User.set_dimensions()
         else:
             self.dimensions = dimensions
 
     @staticmethod
+    # set the skills from the DB on the user
     def set_skills():
         skills = list(skill_collection.find({}))
         skill_to_points = []
@@ -52,6 +57,7 @@ class User:
         return skill_to_points
 
     @staticmethod
+    # set the dimensions from the DB on the user
     def set_dimensions():
         dimensions = list(dimension_collection.find({}))
         dimension_to_points = []
@@ -61,7 +67,8 @@ class User:
             dimension_dict['value'] = 0
             dimension_to_points.append(dimension_dict)
         return dimension_to_points
-        
+
+    # creates a JSON dump of the
     def json_dump(self, inc_pass=False):
         if inc_pass:
             pwd = self.password
@@ -83,13 +90,16 @@ class User:
             'dimensions': self.dimensions
         }
         return json_dict
-    
+
+    # returns if a user has a certain role
     def can_access(self, email):
         return 'admin' in self.roles or ('faculty' in self.roles and 'student' in User.get_role(email))
-    
+
+    # returns if a user is authorized (verified email)
     def is_authorized(self):
         return self.is_auth
-    
+
+    # send the verification email to the user
     def send_verify(self, o_id):
         hash_token = User.gen_token_hash(self.token)
         html_body = "Please verify your account by clicking the link below!<br>"
@@ -106,7 +116,8 @@ class User:
         msg.html = html_body + msg_body + rest
         if not app.app.config['TESTING']:
             app.mail.send(msg)
-    
+
+    # decrements the TTL for the token
     def update_ttl(self):
         user_collection.result = user_collection.update_one(
             {'_id': self.o_id},
@@ -123,22 +134,26 @@ class User:
                 })
         else:
             self.update_ttl()
-    
+
+    # generates a unique token
     @staticmethod
     def gen_token():
         return str(uuid.uuid1())
-    
+
+    # generates a password hash
     @staticmethod
     def gen_pw_hash(password, sugar):
-        #TODO make salt more unique
+        # TODO make salt more unique
         salt = app.app.config['SALT'] + sugar
         return hashlib.sha512(password + salt).hexdigest()
-    
+
+    # generates a token hash
     @staticmethod
     def gen_token_hash(token):
         # creates a url safe hash token
         return base64.urlsafe_b64encode(hashlib.md5(token).digest())[:11]
-    
+
+    # authorizes a user - triggered from verification email
     @staticmethod
     def authorize(o_id, token):
         tmp_user = User.get_user_from_db(o_id = o_id)
@@ -152,7 +167,8 @@ class User:
             return True
         else:
             return False
-        
+
+    # returns roles based on the email address
     @staticmethod
     def get_role(email):
         if 'husky.neu.edu' in email:
@@ -174,7 +190,8 @@ class User:
                 return l[0] + l[1]
         else:
             return email
-    
+
+    # gets a user from the database based on one of the input fields
     @staticmethod
     def get_user_from_db(o_id=None, token=None, email=None, is_post=False):
         if token is not None:
@@ -204,7 +221,8 @@ class User:
         if is_post:
             user.update_token()
         return user
-    
+
+    # returns a user if they are authorized for the role
     @staticmethod
     def get_user_check_auth(role, token, is_post=False):
         user = User.get_user_from_db(token=token, is_post=is_post)
@@ -213,7 +231,7 @@ class User:
                 return user
         return None
     
-    # returns a user if they are authorized for a role
+    # returns a user if they are authorized to get that user
     @staticmethod
     def get_user_if_auth(o_id=None, token=None, email=None, password=None, is_post=False):
         user = User.get_user_from_db(o_id, token, email)
