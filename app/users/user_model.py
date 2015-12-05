@@ -207,8 +207,8 @@ class User:
         return user
     
     @staticmethod
-    def get_user_check_auth(role, token):
-        user = User.get_user_from_db(token=token)
+    def get_user_check_auth(role, token, is_post=False):
+        user = User.get_user_from_db(token=token, is_post=is_post)
         if user is not None:
             if role in user.roles:
                 return user
