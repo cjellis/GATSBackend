@@ -113,16 +113,18 @@ The steps to run the application are as follows:
     b. This will create a virtual environment and a venv folder
     c. Run ". venv/bin/activate"
     d. This will activate the virtual environment
-2) Run "pip install -r requirements.txt"
+2) Change the HOST and PORT values to the correct values
+3) Run "pip install -r requirements.txt"
     a. This will install all of the necessary packages for running the app
-3) Run "python setup.py install"
-4) Run "python run.py"
+4) Run "python setup.py install"
+5) Run "python run.py"
 
 ##########################################################################
 Config Values
 
 HOST - when the application is run, it will bind to this IP address - default
 is 0.0.0.0 which is localhost
+*** This need to be changed before running the application ****
 
 PORT - when the application is run, it will bind to this port - default is
 5000
