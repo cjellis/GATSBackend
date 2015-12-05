@@ -8,12 +8,18 @@ from app.users.user_model import User
 from app.utils.validators import MyValidator
 from app.utils.msg_tools import ResponseTools as msg_tools
 
+###########################################################################
+# blueprint for flask
 users = Blueprint('users', __name__, url_prefix='/users')
+
+###########################################################################
+# validation
 
 
 def validate_objectid(field, value, error, db):
     if not re.match('[a-f0-9]{24}', value) and db.find_one({'_id': ObjectId(value)}):
         error(field, ERROR_BAD_TYPE.format('ObjectId'))
+
 
 # validator for unique type
 def validate_unique(field, value, error, db, search):
@@ -26,7 +32,9 @@ validate_event = lambda field, value, error: validate_objectid(field, ObjectId(v
 validate_skill = lambda field, value, error: validate_objectid(field, ObjectId(value), error, skills)
 validate_dimension = lambda field, value, error: validate_objectid(field, ObjectId(value), error, dimensions)
 
-    
+###########################################################################
+# user schema
+
 schema = {
     # Schema definition, based on Cerberus grammar. Check the Cerberus project
     # (https://github.com/nicolaiarocci/cerberus) for details.
@@ -111,14 +119,18 @@ schema = {
 
 schemaValidator = MyValidator(schema)
 
+###########################################################################
+# API Endpoints
 
+
+##
+# add a user to the system
+# need a firstname, lastname, email, password
 @users.route('/addUser', methods=['POST'])
 def add_user():
     data = json.loads(request.data)
     email = data['email']
     email = User.fix_email_bug(email)
-    # comment back in to do testing on a single address
-    # email = data['email']
 
     if 'year' in data and 'major' in data:
         password = User.gen_pw_hash(data['password'], data['email'])
@@ -133,11 +145,13 @@ def add_user():
     if schemaValidator.validate(data):
         o_id = usersdb.insert_one(data).inserted_id
         user.send_verify(o_id)
-        # TODO add is auth flag
         return msg_tools.response_success(objects={'user': {'user_oid': str(user.email), 'token': user.token}})
     return msg_tools.response_fail(objects=schemaValidator.errors)
 
 
+##
+# verifies a user from the email url
+# renders a success or failure template
 @users.route('/verifyUser/<o_id>/<token>', methods=['GET'])
 def verify_user(o_id, token):
     if User.authorize(o_id, token):
@@ -146,6 +160,9 @@ def verify_user(o_id, token):
         return render_template("failedAuthorization.html")
 
 
+##
+# get the user information from the system using an email and password or email and token
+# returns the user information if request is valid
 # @users.route('/getUser/id/<id>/<auth_token>', methods=['GET'])    #add later if needed
 @users.route('/getUser/pw/<email>/<password>')
 @users.route('/getUser/tk/<email>/<auth_token>', methods=['GET'])
