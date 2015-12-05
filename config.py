@@ -4,7 +4,7 @@ import os
 # Statement for enabling the development environment
 DEBUG = True
 
-#change when needed
+# Change when needed
 HOST = '0.0.0.0'
 PORT = 5000
 
@@ -16,7 +16,7 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 # operations using the other.
 THREADS_PER_PAGE = 2
 
-# Enable protection agains *Cross-site Request Forgery (CSRF)*
+# Enable protection against *Cross-site Request Forgery (CSRF)*
 CSRF_ENABLED = True
 
 # Use a secure, unique and absolutely secret key for
@@ -36,10 +36,13 @@ MAIL_USE_TLS = True
 MAIL_USE_SSL = False
 MAIL_USERNAME = 'gats.server@gmail.com'
 MAIL_PASSWORD = 'tbtsc2015'
-TESTING = False
+
 
 # Salt for password hashing
 # WARNING changing this field will result in all passwords
 # previously saved to be unsuable
 # this salt was generated with uuid.uuid4().hex
 SALT = 'd8f473b018b447e9ae6f74786540131d'
+
+# Flag if in testing mode (disables sending emails)
+TESTING = False

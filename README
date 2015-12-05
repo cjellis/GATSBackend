@@ -1,0 +1,139 @@
+##########################################################################
+This project consists of a few components:
+    Database scripts in the DBScripts module
+    Tests within the tests module
+    The application code in the app module
+
+##########################################################################
+DBScripts
+
+There are 5 files within the DBScripts module
+    __init__.py     ## Empty
+    ClearMongo.py
+    SetUpDB.py
+    create_skill_calls.py
+    skills.csv
+
+The skills.csv is a csv file of the mapping from skills to dimensions
+that was provided to us by CATLR. It lists each skill as a row and has
+an x or X in the column related to each dimension that the skill is
+related to. The create_skill_calls.py script takes in this file and
+prints to the console all of the calls mongo would need to make in order
+to add all of those skills to the database.
+
+The SetUpDb.py script makes calls to the Mongo database to add the 5 dimensions,
+the 50 skills (we copied the output of the create_skill_calls script into
+this file) and an administrator with the email admin@neu.edu and the password
+CATLRAdmin. This script can be used to populate the database before running the
+application. Related to this script is the ClearMongo.py script. This file
+will remove all entries within the database. This is mostly used for testing
+and can be used in conjunction with the SetUpDb.py file to repeatedly populate
+the database, make some calls, and then clear the database.
+
+##########################################################################
+Tests
+
+There are 7 files within the Tests module
+    __init__.py     ## Empty
+    test_admin.py
+    test_db_scripts.py
+    test_dimensions.py
+    test_event.py
+    test_skills.py
+    test_user.py
+
+The test_db_scripts.py file contains the tests for the ClearMongo and SetUpDb
+files. It verifies that the correct data was put into the database and that
+it was cleared out properly.
+
+The 5 other files each test the corresponding submodule within the application
+code. We have written unit tests for each module and currently have around 99%
+code coverage.
+
+##########################################################################
+App
+
+The application module has 7 submodules and 2 subfolders
+Modules
+    administrator
+    database
+    dimensions
+    events
+    skills
+    users
+    utils
+
+Folders
+    static
+    templates
+
+5 of the 7 submodules correspond to API branches:
+    administrator
+    dimensions
+    events
+    skills
+    users
+
+Each of these submodules respond to calls to the API at /NAME/CALL. All of
+the available API calls are detailed within the documentation.
+
+The other two submodules, database and utils, provide functionality common
+to the other submodules. The database submodule connects to the database
+and has variables for each collection we use within the application. The
+utils submodule has functionality needed by many submodules such as
+returning a correctly formatted message with a response code, status
+message, and response data. It also contains common validators that are
+used to validate the various schema within the application.
+
+The other two folders, static and templates, provide HTML content for the
+few webpages that we serve out from the application. The static folder contains
+any static files, which so far is just the index.css file. The templates
+folder contains the code for the various HTML webpages within the system.
+
+The app module also has a __init__.py file. This file registers each submodule
+so that the correct API calls are forwarded to the correct file. It also
+sets up the mail server we use to send verification emails.
+
+##########################################################################
+Top Level Files
+
+    config.py
+    Procfile
+    requirement.txt
+    run.py
+    setup.py
+
+These files contain all of the configuration information for the application
+and are used to set up and run the application. Procfile can be ignored.
+
+The steps to run the application are as follows:
+
+1) **OPTIONAL** Create a virtual environment for the application.
+    a. Run "virtualenv venv"
+    b. This will create a virtual environment and a venv folder
+    c. Run ". venv/bin/activate"
+    d. This will activate the virtual environment
+2) Run "pip install -r requirements.txt"
+    a. This will install all of the necessary packages for running the app
+3) Run "python setup.py install"
+4) Run "python run.py"
+
+##########################################################################
+Config Values
+
+HOST - when the application is run, it will bind to this IP address - default
+is 0.0.0.0 which is localhost
+
+PORT - when the application is run, it will bind to this port - default is
+5000
+
+MONGODB_URL - the URL for the mongo db
+structure = "mongodb://USERNAME:PASSWORD@IP:PORT/DBNAME"
+
+MAIL_X - fields for changing the mail server, can change the server, port, if
+the server should use SSL or TLS, and the username and password
+
+SALT - the salt to use for hashing passwords on the backend
+*** SHOULD NOT BE CHANGED UNLESS ABSOLUTELY NECESSARY ***
+
+TESTING - flag if you are running tests - currently disables sending emails
