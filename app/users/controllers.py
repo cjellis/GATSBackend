@@ -159,7 +159,6 @@ def verify_user(o_id, token):
     else:
         return render_template("failedAuthorization.html")
 
-
 ##
 # get the user information from the system using an email and password or email and token
 # returns the user information if request is valid

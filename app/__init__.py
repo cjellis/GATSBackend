@@ -1,7 +1,8 @@
 # Import flask and template operators
 import app
 from flask import Flask
-from flask.ext.mail import Mail
+#from flask.ext.mail import Mail
+from flask.ext.sendmail import Mail
 # Import a module / component using its blueprint handler variable
 from app.events.controllers import events as events
 from app.administrator.controllers import admin as admin
