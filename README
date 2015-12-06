@@ -119,6 +119,8 @@ The steps to run the application are as follows:
 4) Run "python setup.py install"
 5) Run "python run.py"
 
+The app has only been tested with Python 2.7.10
+
 ##########################################################################
 Config Values
 
