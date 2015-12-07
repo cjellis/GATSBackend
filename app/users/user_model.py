@@ -1,7 +1,7 @@
 import uuid, hashlib, binascii, base64, app
 from app.database.db_connection import user_collection, skill_collection, dimension_collection
 from bson import ObjectId
-from flask.ext.mail import Message
+from flask.ext.sendmail import Message
 
 # user class for all users in the system
 class User:
