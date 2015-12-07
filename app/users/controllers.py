@@ -41,13 +41,11 @@ schema = {
     'firstname': {
         'type': 'string',
         'minlength': 1,
-        'maxlength': 10,
         'required': True
     },
     'lastname': {
         'type': 'string',
         'minlength': 1,
-        'maxlength': 15,
         'required': True
     },
     'email': {
@@ -92,8 +90,7 @@ schema = {
     },
     'major': {
         'type': 'string',
-        'nullable': True,
-        'maxlength': 50    
+        'nullable': True
     },
     'skills': {
         'type': 'list',
