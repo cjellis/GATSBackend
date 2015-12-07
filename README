@@ -134,8 +134,7 @@ PORT - when the application is run, it will bind to this port - default is
 MONGODB_URL - the URL for the mongo db
 structure = "mongodb://USERNAME:PASSWORD@IP:PORT/DBNAME"
 
-MAIL_X - fields for changing the mail server, can change the server, port, if
-the server should use SSL or TLS, and the username and password
+MAIL_USERNAME - fields for changing the email sender
 
 SALT - the salt to use for hashing passwords on the backend
 *** SHOULD NOT BE CHANGED UNLESS ABSOLUTELY NECESSARY ***
