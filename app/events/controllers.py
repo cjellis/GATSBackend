@@ -312,10 +312,11 @@ def submit_attendance(event_id, auth_token):
     if event['state'] == 'closed' or event['state'] == 'completed':
         return response.response_fail(msg="ERROR: Event is already closed")
     attendance = event['attendance']
-    attendance.append({"firstName": user.f_name, "lastName": user.l_name, "email": user.email})
-    user.events.append(event_id)
-    event_collection.update_one({"id": event_id}, {"$set": {"attendance": attendance}})
-    user_collection.update_one({"email": user.email}, {"$set": {"events": user.events}})
+    if not any(record['email'] == user.email for record in attendance):
+        attendance.append({"firstName": user.f_name, "lastName": user.l_name, "email": user.email})
+        user.events.append(event_id)
+        event_collection.update_one({"id": event_id}, {"$set": {"attendance": attendance}})
+        user_collection.update_one({"email": user.email}, {"$set": {"events": user.events}})
     return response.response_success()
 
 
