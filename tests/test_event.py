@@ -226,6 +226,9 @@ class EventTestCase(unittest.TestCase):
         rv = self.app.post('/events/submitAttendance/{}/{}'.format(event_id, self.token_student))
         assert "Success" in rv.data
 
+        rv = self.app.post('/events/submitAttendance/{}/{}'.format(event_id, self.token_student))
+        assert "ERROR: Already submitted attendance" in rv.data
+
     # tests distributing the event points
     def test_event_point_distribution(self):
         rv = self.app.post('/events/addEvent/{}'.format(self.token),

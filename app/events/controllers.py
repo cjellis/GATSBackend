@@ -317,7 +317,8 @@ def submit_attendance(event_id, auth_token):
         user.events.append(event_id)
         event_collection.update_one({"id": event_id}, {"$set": {"attendance": attendance}})
         user_collection.update_one({"email": user.email}, {"$set": {"events": user.events}})
-    return response.response_success()
+        return response.response_success()
+    return response.response_fail(msg="ERROR: Already submitted attendance")
 
 
 ##
