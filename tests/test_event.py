@@ -337,7 +337,7 @@ class EventTestCase(unittest.TestCase):
         assert len(dim) == 1
         d = dim[0]
         assert d['dimension'] == 'TestDimension'
-        assert d['value'] == 1
+        assert d['value'] == 2
 
     # tests distributing points with verification
     def test_event_point_distribution_with_verification(self):
@@ -430,7 +430,7 @@ class EventTestCase(unittest.TestCase):
         assert len(dim) == 1
         d = dim[0]
         assert d['dimension'] == 'TestDimension'
-        assert d['value'] == 1
+        assert d['value'] == 2
 
     # tests getting the event attendance
     def test_event_get_attendance(self):
