@@ -25,13 +25,13 @@ length_to_value_map = {
     "120-179": 9,
     "180-239": 10,
     "240-299": 11,
-    "300-399": 12
-
+    "300-399": 12,
+    "over 400": 13
 }
 
 level_to_value_map = {
-    'Active': 1,
-    'Passive': 2,
+    'Active': 2,
+    'Passive': 1,
     'Generative': 3
 }
 
@@ -168,7 +168,7 @@ schema = {
         'type': 'list',
         'schema': {'type': 'string'}
     },
-    'attendance': { #change to attendants?
+    'attendance': {
         'type': 'list',
         'schema': {'type': 'string'}  # user email?
     },
